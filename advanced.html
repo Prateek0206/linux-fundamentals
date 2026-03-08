@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Advanced — linux.docs</title>
+<link rel="stylesheet" href="shared/style.css"/>
+<style>
+  :root{--accent:#e05565;--accent2:#b83a48;--accent-glow:rgba(224,85,101,.10);--accent-glow2:rgba(224,85,101,.05);}
+  h3::before{background:var(--red)}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div><nav id="topnav"></nav><div id="mobile-drawer"></div>
+<div class="page-wrap">
+<aside id="toc">
+  <div class="toc-section-label">Advanced</div>
+  <a class="toc-link" href="#docker">Docker</a>
+  <a class="toc-link" href="#nginx">Nginx</a>
+  <a class="toc-link" href="#ssh-tunnels">SSH Tunnels</a>
+  <a class="toc-link" href="#wireguard">WireGuard VPN</a>
+  <a class="toc-link" href="#iptables">iptables Deep Dive</a>
+  <a class="toc-link" href="#kernel-tuning">Kernel Tuning (sysctl)</a>
+  <a class="toc-link" href="#lvm">LVM</a>
+  <a class="toc-link" href="#zfs">ZFS</a>
+  <a class="toc-link" href="#cgroups">cgroups</a>
+  <a class="toc-link" href="#performance">Performance Tools</a>
+</aside>
+<div class="main-content"><div class="content-inner">
+
+<div class="page-hero">
+  <div class="page-hero-eyebrow">06 — Advanced</div>
+  <h1><em>Deep dive</em> into<br/>Linux internals</h1>
+  <p class="page-hero-lead">Docker, Nginx, WireGuard, SSH tunnels, iptables, kernel tuning, LVM, ZFS, and cgroups. For when you want to go beyond the basics.</p>
+</div>
+
+<!-- DOCKER -->
+<div class="doc-section" id="docker">
+  <div class="sec-header"><div class="sec-num">01</div><h2><em>Docker</em></h2><div class="sec-rule"></div></div>
+  <div class="learn-box">
+    <div class="learn-box-title">What Docker actually is</div>
+    <p>Docker packages apps with all their dependencies into <strong>containers</strong> — lightweight, isolated environments using Linux namespaces + cgroups + overlay filesystems. A container is not a VM (shares the host kernel), but processes inside it think they're alone. This solves "works on my machine" forever.</p>
+  </div>
+  <h3>Install on Ubuntu</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">bash</span></div><button class="copy-btn" onclick="doCopy(this,'curl -fsSL https://get.docker.com | sh\nsudo usermod -aG docker dell  # run docker without sudo\nnewgrp docker\ndocker --version')">copy</button></div><div class="cb-body">
+<span class="cmd">curl -fsSL https://get.docker.com</span> <span class="op">|</span> <span class="cmd">sh</span>
+<span class="cmd">sudo usermod</span> <span class="flag">-aG</span> <span class="str">docker dell</span>   <span class="cmt"># run docker without sudo</span>
+<span class="cmd">newgrp docker</span>
+  </div></div>
+  <h3>Essential Docker Commands</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">docker</span></div><button class="copy-btn" onclick="doCopy(this,'docker run hello-world\ndocker run -d -p 80:80 nginx             # detached, port 80\ndocker run -it ubuntu bash              # interactive shell\ndocker ps                               # running containers\ndocker ps -a                            # all containers\ndocker stop container_id\ndocker rm container_id\ndocker images\ndocker pull nginx\ndocker logs container_id -f\ndocker exec -it container_id bash      # shell inside running container\ndocker volume ls\ndocker network ls')">copy</button></div><div class="cb-body">
+<span class="cmd">docker run hello-world</span>                             <span class="cmt"># test docker works</span>
+<span class="cmd">docker run</span> <span class="flag">-d -p</span> <span class="num">80:80</span> <span class="str">nginx</span>               <span class="cmt"># nginx in background</span>
+<span class="cmd">docker run</span> <span class="flag">-it</span> <span class="str">ubuntu bash</span>                <span class="cmt"># interactive Ubuntu shell</span>
+<span class="cmd">docker ps</span>                                  <span class="cmt"># running containers</span>
+<span class="cmd">docker ps -a</span>                               <span class="cmt"># all (including stopped)</span>
+<span class="cmd">docker stop</span> <span class="str">container_id</span>
+<span class="cmd">docker logs</span> <span class="str">container_id</span> <span class="flag">-f</span>               <span class="cmt"># live container logs</span>
+<span class="cmd">docker exec</span> <span class="flag">-it</span> <span class="str">container_id bash</span>         <span class="cmt"># shell inside container</span>
+  </div></div>
+  <h3>Docker Compose</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">docker-compose.yml</span></div><button class="copy-btn" onclick="doCopy(this,'services:\n  web:\n    image: nginx\n    ports:\n      - \"80:80\"\n    volumes:\n      - ./html:/usr/share/nginx/html\n  db:\n    image: postgres:16\n    environment:\n      POSTGRES_PASSWORD: secretpassword\n    volumes:\n      - pgdata:/var/lib/postgresql/data\n\nvolumes:\n  pgdata:')">copy</button></div><div class="cb-body">
+<span class="kw">services</span>:<br/>
+  <span class="kw">web</span>:<br/>
+    <span class="kw">image</span>: <span class="str">nginx</span><br/>
+    <span class="kw">ports</span>: [<span class="str">"80:80"</span>]<br/>
+    <span class="kw">volumes</span>: [<span class="str">"./html:/usr/share/nginx/html"</span>]<br/>
+  <span class="kw">db</span>:<br/>
+    <span class="kw">image</span>: <span class="str">postgres:16</span><br/>
+    <span class="kw">environment</span>:<br/>
+      <span class="kw">POSTGRES_PASSWORD</span>: <span class="str">secretpassword</span>
+  </div></div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">compose commands</span></div><button class="copy-btn" onclick="doCopy(this,'docker compose up -d\ndocker compose down\ndocker compose logs -f\ndocker compose ps\ndocker compose pull   # update images')">copy</button></div><div class="cb-body">
+<span class="cmd">docker compose up -d</span>    <span class="cmt"># start all services detached</span>
+<span class="cmd">docker compose down</span>     <span class="cmt"># stop and remove</span>
+<span class="cmd">docker compose logs -f</span>  <span class="cmt"># follow all service logs</span>
+<span class="cmd">docker compose pull</span>     <span class="cmt"># update all images</span>
+  </div></div>
+</div>
+
+<!-- NGINX -->
+<div class="doc-section" id="nginx">
+  <div class="sec-header"><div class="sec-num">02</div><h2><em>Nginx</em></h2><div class="sec-rule"></div></div>
+  <p>Nginx is a web server, reverse proxy, and load balancer. It's extremely fast and efficient — it's likely serving the sites you visit every day. Use it to serve static files, forward traffic to apps, and add SSL.</p>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">install + basic commands</span></div><button class="copy-btn" onclick="doCopy(this,'sudo apt install nginx\nsudo systemctl enable nginx\nsudo systemctl start nginx\nnginx -t                    # test config before reload\nsudo systemctl reload nginx # apply config changes')">copy</button></div><div class="cb-body">
+<span class="cmd">sudo apt install nginx</span>
+<span class="cmd">sudo systemctl enable nginx</span>
+<span class="cmd">nginx -t</span>                    <span class="cmt"># ALWAYS test config before reload</span>
+<span class="cmd">sudo systemctl reload nginx</span> <span class="cmt"># apply without downtime</span>
+  </div></div>
+
+  <h3>Reverse Proxy Config (most common use)</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">/etc/nginx/sites-available/myapp</span></div><button class="copy-btn" onclick="doCopy(this,'server {\n    listen 80;\n    server_name yourdomain.com;\n\n    location / {\n        proxy_pass http://localhost:3000;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n    }\n}\n\n# Enable: sudo ln -s /etc/nginx/sites-available/myapp /etc/nginx/sites-enabled/\n# Then: nginx -t && sudo systemctl reload nginx')">copy</button></div><div class="cb-body">
+<span class="kw">server</span> {<br/>
+    <span class="kw">listen</span> <span class="num">80</span>;<br/>
+    <span class="kw">server_name</span> yourdomain.com;<br/>
+<br/>
+    <span class="kw">location</span> / {<br/>
+        <span class="kw">proxy_pass</span> http://localhost:3000;  <span class="cmt"># your app's port</span><br/>
+        <span class="kw">proxy_set_header</span> Host $host;<br/>
+        <span class="kw">proxy_set_header</span> X-Real-IP $remote_addr;<br/>
+    }<br/>
+}
+  </div></div>
+</div>
+
+<!-- SSH TUNNELS -->
+<div class="doc-section" id="ssh-tunnels">
+  <div class="sec-header"><div class="sec-num">03</div><h2>SSH <em>Tunnels</em></h2><div class="sec-rule"></div></div>
+  <div class="learn-box">
+    <div class="learn-box-title">Three types of SSH tunnel</div>
+    <p><strong>Local</strong>: Forward your local port → remote service (access Syncthing UI). <strong>Remote</strong>: Forward remote port → your local machine (expose local server to remote). <strong>Dynamic</strong>: SOCKS proxy through SSH (route all traffic via server).</p>
+  </div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">SSH tunnels</span></div><button class="copy-btn" onclick="doCopy(this,'# LOCAL: access remote service locally\n# ssh -L LOCAL_PORT:REMOTE_HOST:REMOTE_PORT user@server\nssh -L 8384:localhost:8384 dell@192.168.1.50\n# Now visit: http://localhost:8384 (Syncthing UI)\n\n# Background tunnel (no shell)\nssh -N -f -L 8384:localhost:8384 dell@192.168.1.50\n\n# REMOTE: expose local service on remote server\n# ssh -R REMOTE_PORT:LOCAL_HOST:LOCAL_PORT user@server\nssh -R 9000:localhost:3000 dell@192.168.1.50\n# Now: visiting dell-server:9000 reaches YOUR localhost:3000\n\n# DYNAMIC: SOCKS proxy\nssh -D 1080 -N -f dell@192.168.1.50\n# Configure browser SOCKS proxy: localhost:1080')">copy</button></div><div class="cb-body">
+<span class="cmt"># LOCAL: access Syncthing UI on Lenovo</span>
+<span class="cmd">ssh</span> <span class="flag">-L</span> <span class="str">8384:localhost:8384</span> <span class="str">dell@192.168.1.50</span>
+<span class="cmt"># → visit http://localhost:8384</span>
+<br/>
+<span class="cmt"># Background tunnel, no shell</span>
+<span class="cmd">ssh</span> <span class="flag">-N -f -L</span> <span class="str">8384:localhost:8384</span> <span class="str">dell@192.168.1.50</span>
+<br/>
+<span class="cmt"># REMOTE: expose local port 3000 on remote port 9000</span>
+<span class="cmd">ssh</span> <span class="flag">-R</span> <span class="str">9000:localhost:3000</span> <span class="str">dell@192.168.1.50</span>
+<br/>
+<span class="cmt"># DYNAMIC SOCKS proxy through Dell</span>
+<span class="cmd">ssh</span> <span class="flag">-D</span> <span class="num">1080</span> <span class="flag">-N -f</span> <span class="str">dell@192.168.1.50</span>
+  </div></div>
+</div>
+
+<!-- WIREGUARD -->
+<div class="doc-section" id="wireguard">
+  <div class="sec-header"><div class="sec-num">04</div><h2>WireGuard <em>VPN</em></h2><div class="sec-rule"></div></div>
+  <p>WireGuard is a modern VPN built into the Linux kernel. It's faster and simpler than OpenVPN. Great for accessing your Dell server from outside your home network.</p>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">WireGuard setup (server)</span></div><button class="copy-btn" onclick="doCopy(this,'sudo apt install wireguard\n\n# Generate key pair\nwg genkey | sudo tee /etc/wireguard/private.key\nsudo chmod 600 /etc/wireguard/private.key\nsudo cat /etc/wireguard/private.key | wg pubkey | sudo tee /etc/wireguard/public.key\n\n# View keys\nsudo cat /etc/wireguard/private.key\nsudo cat /etc/wireguard/public.key')">copy</button></div><div class="cb-body">
+<span class="cmd">sudo apt install wireguard</span>
+<br/>
+<span class="cmt"># Generate keys</span>
+<span class="cmd">wg genkey</span> <span class="op">|</span> <span class="cmd">sudo tee</span> <span class="path">/etc/wireguard/private.key</span>
+<span class="cmd">sudo chmod 600</span> <span class="path">/etc/wireguard/private.key</span>
+<span class="cmd">sudo cat</span> <span class="path">/etc/wireguard/private.key</span> <span class="op">|</span> <span class="cmd">wg pubkey</span> <span class="op">|</span> <span class="cmd">sudo tee</span> <span class="path">/etc/wireguard/public.key</span>
+  </div></div>
+  <div class="callout c-tip"><div class="callout-ico">💡</div><div>For the easiest WireGuard setup, consider <strong>Tailscale</strong> — it's WireGuard underneath but handles key exchange, DNS, and NAT traversal automatically. Free for personal use, works great for remote server access.</div></div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">Tailscale (much simpler)</span></div><button class="copy-btn" onclick="doCopy(this,'# On Dell server:\ncurl -fsSL https://tailscale.com/install.sh | sh\nsudo tailscale up\ntailscale ip -4   # your tailscale IP\n\n# On Lenovo:\n# Install Tailscale, login — devices auto-connect\nssh dell@100.x.x.x  # SSH via Tailscale IP from anywhere')">copy</button></div><div class="cb-body">
+<span class="cmt"># Install on Dell</span>
+<span class="cmd">curl -fsSL https://tailscale.com/install.sh</span> <span class="op">|</span> <span class="cmd">sh</span>
+<span class="cmd">sudo tailscale up</span>      <span class="cmt"># open URL in browser to login</span>
+<span class="cmd">tailscale ip -4</span>        <span class="cmt"># your Tailscale IP (e.g. 100.x.x.x)</span>
+<br/>
+<span class="cmt"># Now SSH from anywhere (phone, office, etc)</span>
+<span class="cmd">ssh</span> <span class="str">dell@100.x.x.x</span>     <span class="cmt"># works even from other networks</span>
+  </div></div>
+</div>
+
+<!-- IPTABLES -->
+<div class="doc-section" id="iptables">
+  <div class="sec-header"><div class="sec-num">05</div><h2>iptables <em>Deep Dive</em></h2><div class="sec-rule"></div></div>
+  <div class="learn-box">
+    <div class="learn-box-title">How iptables works</div>
+    <p>iptables is a userspace tool to configure the kernel's netfilter packet filter. Packets travel through <strong>chains</strong> (INPUT, OUTPUT, FORWARD) in <strong>tables</strong> (filter, nat, mangle). Rules are checked in order — first match wins. If no rule matches, the chain's default policy applies (usually ACCEPT or DROP).</p>
+  </div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">iptables</span></div><button class="copy-btn" onclick="doCopy(this,'sudo iptables -L -n -v              # list all rules with counters\nsudo iptables -L INPUT -n -v       # INPUT chain only\n\n# Allow SSH\nsudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT\n\n# Allow established connections\nsudo iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT\n\n# Drop everything else (careful!)\nsudo iptables -P INPUT DROP\n\n# Save rules (Ubuntu)\nsudo apt install iptables-persistent\nsudo netfilter-persistent save\n\n# Flush all rules (reset)\nsudo iptables -F')">copy</button></div><div class="cb-body">
+<span class="cmd">sudo iptables</span> <span class="flag">-L -n -v</span>              <span class="cmt"># list all rules + packet counts</span>
+<br/>
+<span class="cmt"># Add rules</span>
+<span class="cmd">sudo iptables</span> <span class="flag">-A INPUT -p tcp --dport</span> <span class="num">22</span> <span class="flag">-j</span> ACCEPT
+<span class="cmd">sudo iptables</span> <span class="flag">-A INPUT -m state --state</span> ESTABLISHED,RELATED <span class="flag">-j</span> ACCEPT
+<span class="cmd">sudo iptables</span> <span class="flag">-P INPUT</span> DROP         <span class="cmt"># default deny — ONLY AFTER allowing SSH!</span>
+<br/>
+<span class="cmt"># Flush (reset to empty)</span>
+<span class="cmd">sudo iptables</span> <span class="flag">-F</span>
+  </div></div>
+</div>
+
+<!-- KERNEL TUNING -->
+<div class="doc-section" id="kernel-tuning">
+  <div class="sec-header"><div class="sec-num">06</div><h2>Kernel Tuning <em>(sysctl)</em></h2><div class="sec-rule"></div></div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">useful sysctl settings</span></div><button class="copy-btn" onclick="doCopy(this,'# View all parameters\nsysctl -a\nsysctl vm.swappiness  # check current value\n\n# Set temporarily (lost on reboot)\nsudo sysctl -w vm.swappiness=10\n\n# Set permanently: add to /etc/sysctl.d/99-custom.conf\n# vm.swappiness = 10         # reduce swap usage (good for servers with enough RAM)\n# net.ipv4.ip_forward = 1   # enable packet forwarding (for routing/Docker)\n# net.core.rmem_max = 16777216  # larger network buffers\n# fs.inotify.max_user_watches = 524288  # needed for Syncthing on large dirs\n\n# Apply persistent settings\nsudo sysctl -p /etc/sysctl.d/99-custom.conf')">copy</button></div><div class="cb-body">
+<span class="cmd">sysctl -a</span>                              <span class="cmt"># show all kernel params</span>
+<span class="cmd">sysctl</span> <span class="str">vm.swappiness</span>                  <span class="cmt"># current swappiness</span>
+<span class="cmd">sudo sysctl</span> <span class="flag">-w</span> <span class="str">vm.swappiness=10</span>      <span class="cmt"># set temporarily</span>
+<br/>
+<span class="cmt"># /etc/sysctl.d/99-custom.conf (persistent):</span>
+<span class="kw">vm.swappiness</span> = 10             <span class="cmt"># less swap (good for SSDs)</span>
+<span class="kw">net.ipv4.ip_forward</span> = 1       <span class="cmt"># for Docker / routing</span>
+<span class="kw">fs.inotify.max_user_watches</span> = 524288  <span class="cmt"># Syncthing large dirs</span>
+<br/>
+<span class="cmd">sudo sysctl -p</span> <span class="path">/etc/sysctl.d/99-custom.conf</span>  <span class="cmt"># apply</span>
+  </div></div>
+</div>
+
+<!-- LVM -->
+<div class="doc-section" id="lvm">
+  <div class="sec-header"><div class="sec-num">07</div><h2><em>LVM</em> — Logical Volume Manager</h2><div class="sec-rule"></div></div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">LVM management</span></div><button class="copy-btn" onclick="doCopy(this,'pvs       # show physical volumes\nvgs       # show volume groups\nlvs       # show logical volumes\n\n# Extend a logical volume (add 10G)\nsudo lvextend -L +10G /dev/ubuntu-vg/ubuntu-lv\nsudo resize2fs /dev/ubuntu-vg/ubuntu-lv  # resize filesystem to fill\n\n# Check result\ndf -h /')">copy</button></div><div class="cb-body">
+<span class="cmd">pvs</span>  <span class="cmt"># physical volumes</span>
+<span class="cmd">vgs</span>  <span class="cmt"># volume groups</span>
+<span class="cmd">lvs</span>  <span class="cmt"># logical volumes</span>
+<br/>
+<span class="cmt"># Extend LV by 10G (online — no downtime!)</span>
+<span class="cmd">sudo lvextend</span> <span class="flag">-L +10G</span> <span class="path">/dev/ubuntu-vg/ubuntu-lv</span>
+<span class="cmd">sudo resize2fs</span> <span class="path">/dev/ubuntu-vg/ubuntu-lv</span>  <span class="cmt"># grow filesystem</span>
+<span class="cmd">df -h /</span>  <span class="cmt"># verify</span>
+  </div></div>
+</div>
+
+<!-- PERFORMANCE TOOLS -->
+<div class="doc-section" id="performance">
+  <div class="sec-header"><div class="sec-num">08</div><h2>Performance <em>Tools</em></h2><div class="sec-rule"></div></div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">performance investigation</span></div><button class="copy-btn" onclick="doCopy(this,'# CPU\nmpstat 1 5       # CPU usage per core, 5 samples\nsar -u 1 5       # CPU utilisation\npidstat 1 5      # per-process CPU usage\n\n# Memory\nfree -h\nvmstat 1 5       # virtual memory stats: swap, IO, CPU\ncat /proc/meminfo\n\n# Disk I/O\niostat -xz 1 5   # disk utilisation (sudo apt install sysstat)\niotop           # interactive disk I/O per process\n\n# Network\nnetstat -s       # network statistics\nss -s            # socket summary\nifstat 1 5       # network interface throughput\nnload            # visual bandwidth monitor\n\n# Comprehensive\ndmesg | tail -20  # recent kernel events\nsar -A           # all sysstat stats')">copy</button></div><div class="cb-body">
+<span class="cmt"># All in one install</span>
+<span class="cmd">sudo apt install</span> <span class="str">sysstat iotop htop ncdu nload</span>
+<br/>
+<span class="cmd">mpstat 1 5</span>       <span class="cmt"># CPU per core, 5 samples</span>
+<span class="cmd">vmstat 1 5</span>       <span class="cmt"># memory, swap, I/O, CPU</span>
+<span class="cmd">iostat</span> <span class="flag">-xz 1 5</span>  <span class="cmt"># disk I/O utilisation</span>
+<span class="cmd">iotop</span>           <span class="cmt"># interactive disk I/O per process</span>
+<span class="cmd">nload</span>           <span class="cmt"># live network bandwidth</span>
+<span class="cmd">ncdu /</span>          <span class="cmt"># interactive disk usage explorer</span>
+  </div></div>
+</div>
+
+<div class="doc-footer">
+  <div>← <a href="my-server.html">My Server</a></div>
+  <div>Next: <a href="scripting.html">Scripting →</a></div>
+</div>
+
+</div></div>
+</div>
+<script src="shared/nav.js"></script>
+</body>
+</html>

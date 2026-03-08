@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bash Scripting — linux.docs</title>
+<link rel="stylesheet" href="shared/style.css"/>
+<style>
+  :root{--accent:#3ddc84;--accent2:#28a860;--accent-glow:rgba(61,220,132,.10);--accent-glow2:rgba(61,220,132,.05);}
+  h3::before{background:var(--green)}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div><nav id="topnav"></nav><div id="mobile-drawer"></div>
+<div class="page-wrap">
+<aside id="toc">
+  <div class="toc-section-label">Scripting</div>
+  <a class="toc-link" href="#why-bash">Why Bash?</a>
+  <a class="toc-link" href="#basics">Script Basics</a>
+  <a class="toc-link" href="#variables">Variables</a>
+  <a class="toc-link" href="#conditionals">Conditionals</a>
+  <a class="toc-link" href="#loops">Loops</a>
+  <a class="toc-link" href="#functions">Functions</a>
+  <a class="toc-link" href="#error-handling">Error Handling</a>
+  <a class="toc-link" href="#input">User Input & Args</a>
+  <a class="toc-link" href="#string-ops">String Operations</a>
+  <a class="toc-link" href="#file-ops">File Operations</a>
+  <a class="toc-link" href="#real-scripts">Real Scripts</a>
+  <a class="toc-link" href="#best-practices">Best Practices</a>
+</aside>
+<div class="main-content"><div class="content-inner">
+
+<div class="page-hero">
+  <div class="page-hero-eyebrow">07 — Bash Scripting</div>
+  <h1>Automate <em>everything</em><br/>with Bash</h1>
+  <p class="page-hero-lead">From variables and conditionals to error handling, functions, and real production scripts — complete bash scripting from zero.</p>
+</div>
+
+<div class="doc-section" id="why-bash">
+  <div class="sec-header"><div class="sec-num">01</div><h2>Why <em>Bash?</em></h2><div class="sec-rule"></div></div>
+  <div class="learn-box">
+    <div class="learn-box-title">What bash scripting actually is</div>
+    <p>A bash script is a text file containing the same commands you type in the terminal — but saved so they run automatically, in sequence, with logic (if/else, loops) and reuse (functions). Your notify.sh, health.sh, backup.sh are bash scripts. Bash is available everywhere on Linux, requires no compilation, and is the glue that holds servers together.</p>
+  </div>
+  <p>Python is often better for complex programs, but bash is unbeatable for: running commands, manipulating files and text, automating system tasks, writing quick one-off scripts, and chaining tools together. If it would take 5 manual terminal steps, make it a script.</p>
+</div>
+
+<div class="doc-section" id="basics">
+  <div class="sec-header"><div class="sec-num">02</div><h2>Script <em>Basics</em></h2><div class="sec-rule"></div></div>
+  <h3>Anatomy of a Script</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">hello.sh</span></div><button class="copy-btn" onclick="doCopy(this,'#!/bin/bash\n# This is a comment\n# The shebang above tells the kernel which interpreter to use\n\necho \"Hello, Dell server!\"  # print to stdout\n\n# Exit code: 0 = success, non-zero = failure\nexit 0')">copy</button></div><div class="cb-body">
+<span class="kw">#!/bin/bash</span>               <span class="cmt"># shebang — tells kernel: use /bin/bash</span>
+<span class="cmt"># This is a comment</span>
+<br/>
+<span class="cmd">echo</span> <span class="str">"Hello, Dell server!"</span>  <span class="cmt"># print to stdout</span>
+<span class="cmd">exit</span> <span class="num">0</span>                    <span class="cmt"># exit code 0 = success</span>
+  </div></div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">run it</span></div><button class="copy-btn" onclick="doCopy(this,'chmod +x hello.sh   # make executable\n./hello.sh          # run it\nbash hello.sh       # alternative (no need for chmod)')">copy</button></div><div class="cb-body">
+<span class="cmd">chmod</span> <span class="flag">+x</span> <span class="path">hello.sh</span>   <span class="cmt"># make executable (only needed once)</span>
+<span class="str">./hello.sh</span>          <span class="cmt"># run it</span>
+<span class="cmd">bash hello.sh</span>       <span class="cmt"># alternative (no chmod needed)</span>
+  </div></div>
+</div>
+
+<div class="doc-section" id="variables">
+  <div class="sec-header"><div class="sec-num">03</div><h2><em>Variables</em></h2><div class="sec-rule"></div></div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">variables.sh</span></div><button class="copy-btn" onclick="doCopy(this,'#!/bin/bash\n\n# Assign (no spaces around =)\nNAME=\"dell-media-server\"\nPORT=22\nIS_RUNNING=true\n\n# Use variables with $\necho "Server: $NAME"\necho "Port: $PORT"\n\n# Command substitution — store output of command\nCURRENT_DATE=$(date +%Y-%m-%d)\nDISK_USAGE=$(df -h / | awk "NR==2 {print $5}")\necho "Date: $CURRENT_DATE | Disk: $DISK_USAGE"\n\n# Default value if variable is empty\nUSER=${SUDO_USER:-"dell"}  # use dell if SUDO_USER is unset\n\n# Read-only variables\nreadonly MAX_RETRIES=3\n\n# Arrays\nSERVICES=("ssh" "syncthing@dell" "fail2ban")\necho ${SERVICES[0]}        # ssh\necho ${SERVICES[@]}        # all elements\necho ${#SERVICES[@]}       # count: 3')">copy</button></div><div class="cb-body">
+<span class="cmt"># Assign — NO spaces around =</span>
+<span class="var">NAME</span>=<span class="str">"dell-media-server"</span>
+<span class="var">PORT</span>=<span class="num">22</span>
+<br/>
+<span class="cmt"># Use variables with $</span>
+<span class="cmd">echo</span> <span class="str">"Server: $NAME on port $PORT"</span>
+<br/>
+<span class="cmt"># Command substitution — store command output in variable</span>
+<span class="var">DATE</span>=<span class="op">$(</span><span class="cmd">date</span> <span class="str">+%Y-%m-%d</span><span class="op">)</span>
+<span class="var">DISK</span>=<span class="op">$(</span><span class="cmd">df</span> <span class="flag">-h</span> / <span class="op">|</span> <span class="cmd">awk</span> <span class="str">'NR==2 {print $5}'</span><span class="op">)</span>
+<span class="cmd">echo</span> <span class="str">"Date: $DATE | Disk: $DISK"</span>
+<br/>
+<span class="cmt"># Default value: use "dell" if SUDO_USER is unset or empty</span>
+<span class="var">USER</span>=<span class="str">${SUDO_USER:-"dell"}</span>
+<br/>
+<span class="cmt"># Arrays</span>
+<span class="var">SERVICES</span>=(<span class="str">"ssh"</span> <span class="str">"syncthing@dell"</span> <span class="str">"fail2ban"</span>)
+<span class="cmd">echo</span> <span class="str">${SERVICES[0]}</span>    <span class="cmt"># ssh (first element)</span>
+<span class="cmd">echo</span> <span class="str">${SERVICES[@]}</span>   <span class="cmt"># all elements</span>
+<span class="cmd">echo</span> <span class="str">${#SERVICES[@]}</span>  <span class="cmt"># count: 3</span>
+  </div></div>
+</div>
+
+<div class="doc-section" id="conditionals">
+  <div class="sec-header"><div class="sec-num">04</div><h2><em>Conditionals</em></h2><div class="sec-rule"></div></div>
+  <div class="learn-box">
+    <div class="learn-box-title">if in bash tests exit codes</div>
+    <p>Unlike Python/JS where if tests a boolean, bash <code>if</code> tests the exit code of a command. <code>[ ... ]</code> and <code>[[ ... ]]</code> are commands that return exit code 0 (true) or 1 (false). Always use double brackets <code>[[ ]]</code> in bash scripts — they're safer and support more features.</p>
+  </div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">conditionals.sh</span></div><button class="copy-btn" onclick="doCopy(this,'#!/bin/bash\n\n# String comparison\nSERVER="dell"\nif [[ "$SERVER" == "dell" ]]; then\n  echo "This is the Dell server"\nelif [[ "$SERVER" == "lenovo" ]]; then\n  echo "This is the Lenovo"\nelse\n  echo "Unknown machine"\nfi\n\n# Number comparison\nDISK_PCT=85\nif [[ $DISK_PCT -ge 90 ]]; then\n  echo "CRITICAL: disk full"\nelif [[ $DISK_PCT -ge 80 ]]; then\n  echo "WARNING: disk getting full"\nfi\n\n# File/directory tests\nif [[ -f "/etc/ssh/sshd_config" ]]; then\n  echo "SSH config exists"\nfi\nif [[ -d "/home/dell/scripts" ]]; then\n  echo "Scripts dir exists"\nfi\nif [[ ! -f "/tmp/lockfile" ]]; then\n  echo "No lockfile — safe to proceed"\nfi\n\n# Check if command exists\nif command -v curl &>/dev/null; then\n  echo "curl is installed"\nfi')">copy</button></div><div class="cb-body">
+<span class="cmt"># String comparison</span>
+<span class="kw">if</span> [[ <span class="str">"$SERVER"</span> == <span class="str">"dell"</span> ]]; <span class="kw">then</span>
+  <span class="cmd">echo</span> <span class="str">"Dell server"</span>
+<span class="kw">elif</span> [[ <span class="str">"$SERVER"</span> == <span class="str">"lenovo"</span> ]]; <span class="kw">then</span>
+  <span class="cmd">echo</span> <span class="str">"Lenovo"</span>
+<span class="kw">else</span>
+  <span class="cmd">echo</span> <span class="str">"Unknown"</span>
+<span class="kw">fi</span>
+<br/>
+<span class="cmt"># Number comparison: -eq -ne -lt -le -gt -ge</span>
+<span class="kw">if</span> [[ <span class="var">$DISK_PCT</span> <span class="flag">-ge</span> <span class="num">90</span> ]]; <span class="kw">then</span>
+  <span class="cmd">echo</span> <span class="str">"CRITICAL disk"</span>
+<span class="kw">fi</span>
+<br/>
+<span class="cmt"># File tests</span>
+<span class="kw">if</span> [[ <span class="flag">-f</span> <span class="str">"/etc/ssh/sshd_config"</span> ]]; <span class="kw">then</span>  <span class="cmt"># -f file, -d dir, -e exists</span>
+  <span class="cmd">echo</span> <span class="str">"file exists"</span>
+<span class="kw">fi</span>
+<br/>
+<span class="cmt"># Check if a command is installed</span>
+<span class="kw">if</span> <span class="cmd">command</span> <span class="flag">-v</span> <span class="str">curl</span> <span class="op">&>/dev/null</span>; <span class="kw">then</span>
+  <span class="cmd">echo</span> <span class="str">"curl is available"</span>
+<span class="kw">fi</span>
+  </div></div>
+
+  <h3>Test Operators Cheatsheet</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Test</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>[[ "$a" == "$b" ]]</code></td><td>String equal</td></tr>
+      <tr><td><code>[[ "$a" != "$b" ]]</code></td><td>String not equal</td></tr>
+      <tr><td><code>[[ "$a" =~ regex ]]</code></td><td>String matches regex</td></tr>
+      <tr><td><code>[[ -z "$a" ]]</code></td><td>String is empty</td></tr>
+      <tr><td><code>[[ -n "$a" ]]</code></td><td>String is not empty</td></tr>
+      <tr><td><code>[[ $a -eq $b ]]</code></td><td>Numbers equal</td></tr>
+      <tr><td><code>[[ $a -lt $b ]]</code></td><td>a less than b</td></tr>
+      <tr><td><code>[[ $a -gt $b ]]</code></td><td>a greater than b</td></tr>
+      <tr><td><code>[[ -f path ]]</code></td><td>File exists and is a regular file</td></tr>
+      <tr><td><code>[[ -d path ]]</code></td><td>Directory exists</td></tr>
+      <tr><td><code>[[ -e path ]]</code></td><td>Path exists (file or dir)</td></tr>
+      <tr><td><code>[[ -r path ]]</code></td><td>File is readable</td></tr>
+      <tr><td><code>[[ -x path ]]</code></td><td>File is executable</td></tr>
+      <tr><td><code>[[ ! condition ]]</code></td><td>NOT (negate)</td></tr>
+      <tr><td><code>[[ a && b ]]</code></td><td>AND</td></tr>
+      <tr><td><code>[[ a || b ]]</code></td><td>OR</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<div class="doc-section" id="loops">
+  <div class="sec-header"><div class="sec-num">05</div><h2><em>Loops</em></h2><div class="sec-rule"></div></div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">loops.sh</span></div><button class="copy-btn" onclick="doCopy(this,'#!/bin/bash\n\n# for loop — over a list\nfor SERVICE in ssh syncthing@dell fail2ban; do\n  STATUS=$(systemctl is-active $SERVICE)\n  echo "$SERVICE: $STATUS"\ndone\n\n# for loop — over array\nSERVICES=("ssh" "syncthing@dell" "fail2ban")\nfor svc in "${SERVICES[@]}"; do\n  echo "Checking $svc..."\ndone\n\n# for loop — C-style with counter\nfor ((i=1; i<=5; i++)); do\n  echo "Attempt $i"\ndone\n\n# while loop\nCOUNT=0\nwhile [[ $COUNT -lt 3 ]]; do\n  echo "Count: $COUNT"\n  ((COUNT++))\ndone\n\n# Loop over files\nfor FILE in /home/dell/scripts/*.sh; do\n  echo "Script: $FILE"\ndone\n\n# Loop over lines of a file\nwhile IFS= read -r LINE; do\n  echo "Line: $LINE"\ndone < /etc/hosts\n\n# break and continue\nfor i in 1 2 3 4 5; do\n  [[ $i -eq 3 ]] && continue  # skip 3\n  [[ $i -eq 5 ]] && break     # stop at 5\n  echo $i\ndone')">copy</button></div><div class="cb-body">
+<span class="cmt"># for over a list</span>
+<span class="kw">for</span> <span class="var">SERVICE</span> <span class="kw">in</span> ssh syncthing@dell fail2ban; <span class="kw">do</span>
+  <span class="var">STATUS</span>=<span class="op">$(</span><span class="cmd">systemctl is-active</span> <span class="var">$SERVICE</span><span class="op">)</span>
+  <span class="cmd">echo</span> <span class="str">"$SERVICE: $STATUS"</span>
+<span class="kw">done</span>
+<br/>
+<span class="cmt"># for over array (quotes preserve spaces)</span>
+<span class="kw">for</span> <span class="var">svc</span> <span class="kw">in</span> <span class="str">"${SERVICES[@]}"</span>; <span class="kw">do</span>
+  <span class="cmd">echo</span> <span class="str">"Checking $svc"</span>
+<span class="kw">done</span>
+<br/>
+<span class="cmt"># while loop with counter</span>
+<span class="var">COUNT</span>=<span class="num">0</span>
+<span class="kw">while</span> [[ <span class="var">$COUNT</span> <span class="flag">-lt</span> <span class="num">3</span> ]]; <span class="kw">do</span>
+  <span class="cmd">echo</span> <span class="str">"Count: $COUNT"</span>
+  <span class="op">((</span><span class="var">COUNT</span>++<span class="op">))</span>
+<span class="kw">done</span>
+<br/>
+<span class="cmt"># loop over lines of a file</span>
+<span class="kw">while</span> <span class="var">IFS</span>= <span class="cmd">read</span> <span class="flag">-r</span> <span class="var">LINE</span>; <span class="kw">do</span>
+  <span class="cmd">echo</span> <span class="str">"$LINE"</span>
+<span class="kw">done</span> <span class="op"><</span> <span class="path">/etc/hosts</span>
+  </div></div>
+</div>
+
+<div class="doc-section" id="functions">
+  <div class="sec-header"><div class="sec-num">06</div><h2><em>Functions</em></h2><div class="sec-rule"></div></div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">functions.sh</span></div><button class="copy-btn" onclick="doCopy(this,'#!/bin/bash\n\n# Define a function\nlog() {\n  echo "[$(date +%H:%M:%S)] $1"\n}\n\n# Function with return value (via exit code or stdout)\ncheck_service() {\n  local SERVICE="$1"  # local = only exists inside function\n  if systemctl is-active --quiet "$SERVICE"; then\n    echo "running"\n    return 0\n  else\n    echo "stopped"\n    return 1\n  fi\n}\n\n# Function that sends Telegram notification\nnotify() {\n  local MESSAGE="$1"\n  curl -s -X POST \\\n    "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \\\n    -d chat_id="${CHAT_ID}" \\\n    -d text="${MESSAGE}" > /dev/null\n}\n\n# Call functions\nlog "Script started"\nSTATUS=$(check_service "ssh")\nlog "SSH is: $STATUS"\nnotify "Script ran successfully"')">copy</button></div><div class="cb-body">
+<span class="cmt"># Define a function</span>
+<span class="kw">log</span>() {
+  <span class="cmd">echo</span> <span class="str">"[$(date +%H:%M:%S)] $1"</span>
+}
+<br/>
+<span class="kw">check_service</span>() {
+  <span class="cmd">local</span> <span class="var">SERVICE</span>=<span class="str">"$1"</span>   <span class="cmt"># local = scoped to function</span>
+  <span class="kw">if</span> <span class="cmd">systemctl is-active</span> <span class="flag">--quiet</span> <span class="str">"$SERVICE"</span>; <span class="kw">then</span>
+    <span class="cmd">echo</span> <span class="str">"running"</span>; <span class="kw">return</span> <span class="num">0</span>
+  <span class="kw">else</span>
+    <span class="cmd">echo</span> <span class="str">"stopped"</span>; <span class="kw">return</span> <span class="num">1</span>
+  <span class="kw">fi</span>
+}
+<br/>
+<span class="cmt"># Call them</span>
+<span class="kw">log</span> <span class="str">"Script started"</span>
+<span class="var">STATUS</span>=<span class="op">$(</span><span class="kw">check_service</span> <span class="str">"ssh"</span><span class="op">)</span>
+<span class="kw">log</span> <span class="str">"SSH is: $STATUS"</span>
+  </div></div>
+</div>
+
+<div class="doc-section" id="error-handling">
+  <div class="sec-header"><div class="sec-num">07</div><h2>Error <em>Handling</em></h2><div class="sec-rule"></div></div>
+  <div class="learn-box">
+    <div class="learn-box-title">The safe script header</div>
+    <p>Always start scripts with <code>set -euo pipefail</code>. Without it, scripts keep running even after errors, leading to partial and broken states that are hard to debug.</p>
+  </div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">error-handling.sh</span></div><button class="copy-btn" onclick="doCopy(this,'#!/bin/bash\nset -e          # exit on any error\nset -u          # error on undefined variable\nset -o pipefail # pipe fails if any part fails\n# Or all at once:\nset -euo pipefail\n\n# Trap — run cleanup code on exit\ncleanup() {\n  echo "Cleaning up..."\n  rm -f /tmp/my_lockfile\n}\ntrap cleanup EXIT   # runs cleanup() when script exits for any reason\ntrap cleanup ERR    # also run on errors\n\n# Custom error handler\nerror_handler() {\n  echo "ERROR on line $1"\n  notify.sh "❌ Script failed on line $1"\n  exit 1\n}\ntrap \'error_handler $LINENO\' ERR\n\n# Safe way to remove files (check first)\nFILE="/tmp/test"\n[[ -f "$FILE" ]] && rm "$FILE"\n\n# Check command success explicitly\nif ! command -v curl &>/dev/null; then\n  echo "Error: curl is not installed"\n  exit 1\nfi')">copy</button></div><div class="cb-body">
+<span class="kw">#!/bin/bash</span>
+<span class="cmd">set</span> <span class="flag">-euo pipefail</span>   <span class="cmt"># e=exit on error, u=unset var = error, o pipefail</span>
+<br/>
+<span class="cmt"># trap — run this function when script exits (any reason)</span>
+<span class="kw">cleanup</span>() { <span class="cmd">rm</span> <span class="flag">-f</span> <span class="path">/tmp/my.lock</span>; }
+<span class="cmd">trap</span> cleanup <span class="str">EXIT</span>
+<br/>
+<span class="cmt"># Custom error handler with line number</span>
+<span class="kw">on_error</span>() {
+  <span class="cmd">echo</span> <span class="str">"ERROR at line $1"</span>
+  /home/dell/scripts/notify.sh <span class="str">"❌ Script failed at line $1"</span>
+}
+<span class="cmd">trap</span> <span class="str">'on_error $LINENO'</span> <span class="str">ERR</span>
+<br/>
+<span class="cmt"># Check if a tool exists before using it</span>
+<span class="kw">if</span> ! <span class="cmd">command</span> <span class="flag">-v</span> curl <span class="op">&>/dev/null</span>; <span class="kw">then</span>
+  <span class="cmd">echo</span> <span class="str">"Error: curl not installed"</span>
+  <span class="cmd">exit</span> <span class="num">1</span>
+<span class="kw">fi</span>
+  </div></div>
+</div>
+
+<div class="doc-section" id="input">
+  <div class="sec-header"><div class="sec-num">08</div><h2>Arguments <em>&amp; Input</em></h2><div class="sec-rule"></div></div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">arguments.sh</span></div><button class="copy-btn" onclick="doCopy(this,'#!/bin/bash\n# Run: ./script.sh arg1 arg2 arg3\n\necho "Script name: $0"\necho "First arg:   $1"\necho "Second arg:  $2"\necho "All args:    $@"\necho "Arg count:   $#"\n\n# Validate arguments\nif [[ $# -lt 1 ]]; then\n  echo "Usage: $0 <message>"\n  exit 1\nfi\n\n# Named arguments with getopts\nwhile getopts "m:u:h" opt; do\n  case $opt in\n    m) MESSAGE="$OPTARG" ;;\n    u) USER="$OPTARG" ;;\n    h) echo "Usage: $0 -m message -u user"; exit 0 ;;\n    ?) echo "Invalid option"; exit 1 ;;\n  esac\ndone\n# Usage: ./script.sh -m "hello" -u dell\n\n# Interactive input\nread -p "Enter server name: " SERVER_NAME\nread -sp "Enter password: " PASSWORD  # -s = silent (no echo)\necho ""\necho "Connecting to: $SERVER_NAME"')">copy</button></div><div class="cb-body">
+<span class="cmt"># Special variables for arguments</span>
+<span class="cmd">echo</span> <span class="str">"Script: $0"</span>      <span class="cmt"># script's own name</span>
+<span class="cmd">echo</span> <span class="str">"Arg 1: $1"</span>       <span class="cmt"># first argument</span>
+<span class="cmd">echo</span> <span class="str">"All:   $@"</span>       <span class="cmt"># all arguments</span>
+<span class="cmd">echo</span> <span class="str">"Count: $#"</span>       <span class="cmt"># argument count</span>
+<br/>
+<span class="cmt"># Validate arguments</span>
+<span class="kw">if</span> [[ <span class="var">$#</span> <span class="flag">-lt</span> <span class="num">1</span> ]]; <span class="kw">then</span>
+  <span class="cmd">echo</span> <span class="str">"Usage: $0 &lt;message&gt;"</span>; <span class="cmd">exit</span> <span class="num">1</span>
+<span class="kw">fi</span>
+<br/>
+<span class="cmt"># Interactive read</span>
+<span class="cmd">read</span> <span class="flag">-p</span> <span class="str">"Server name: "</span> <span class="var">SERVER</span>
+<span class="cmd">read</span> <span class="flag">-sp</span> <span class="str">"Password: "</span> <span class="var">PASS</span>   <span class="cmt"># -s = silent</span>
+  </div></div>
+</div>
+
+<div class="doc-section" id="real-scripts">
+  <div class="sec-header"><div class="sec-num">09</div><h2>Real <em>Scripts</em></h2><div class="sec-rule"></div></div>
+  <h3>Service Monitor — Check All Services, Alert on Any Down</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">/home/dell/scripts/service-monitor.sh</span></div><button class="copy-btn" onclick="doCopy(this,'#!/bin/bash\nset -euo pipefail\n\nSERVICES=("ssh" "syncthing@dell" "fail2ban")\nDOWN_SERVICES=()\n\nfor svc in "${SERVICES[@]}"; do\n  if ! systemctl is-active --quiet "$svc"; then\n    DOWN_SERVICES+=("$svc")\n  fi\ndone\n\nif [[ ${#DOWN_SERVICES[@]} -gt 0 ]]; then\n  MSG="⚠️ Services DOWN on dell-media-server:\\n"\n  for svc in "${DOWN_SERVICES[@]}"; do\n    MSG+="• $svc\\n"\n  done\n  /home/dell/scripts/notify.sh "$MSG"\nfi')">copy</button></div><div class="cb-body">
+<span class="kw">#!/bin/bash</span>
+<span class="cmd">set</span> <span class="flag">-euo pipefail</span>
+<br/>
+<span class="var">SERVICES</span>=(<span class="str">"ssh"</span> <span class="str">"syncthing@dell"</span> <span class="str">"fail2ban"</span>)
+<span class="var">DOWN</span>=()
+<br/>
+<span class="kw">for</span> <span class="var">svc</span> <span class="kw">in</span> <span class="str">"${SERVICES[@]}"</span>; <span class="kw">do</span>
+  <span class="kw">if</span> ! <span class="cmd">systemctl is-active</span> <span class="flag">--quiet</span> <span class="str">"$svc"</span>; <span class="kw">then</span>
+    <span class="var">DOWN</span>+=(<span class="str">"$svc"</span>)
+  <span class="kw">fi</span>
+<span class="kw">done</span>
+<br/>
+<span class="kw">if</span> [[ <span class="str">${#DOWN[@]}</span> <span class="flag">-gt</span> <span class="num">0</span> ]]; <span class="kw">then</span>
+  <span class="var">MSG</span>=<span class="str">"⚠️ Services DOWN:\n$(printf '• %s\n' "${DOWN[@]}")"</span>
+  /home/dell/scripts/notify.sh <span class="str">"$MSG"</span>
+<span class="kw">fi</span>
+  </div></div>
+
+  <h3>Log Rotate + Archive</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">/home/dell/scripts/clean-logs.sh</span></div><button class="copy-btn" onclick="doCopy(this,'#!/bin/bash\nset -euo pipefail\n\nLOG_DIR="/var/log"\nMAX_AGE=30  # days\n\necho "[$(date)] Cleaning logs older than $MAX_AGE days..."\nBEFORE=$(du -sh "$LOG_DIR" | cut -f1)\n\n# Delete old compressed logs\nfind "$LOG_DIR" -name "*.gz" -mtime +$MAX_AGE -delete\nfind "$LOG_DIR" -name "*.1" -mtime +$MAX_AGE -delete\n\nAFTER=$(du -sh "$LOG_DIR" | cut -f1)\necho "[$(date)] Done. $LOG_DIR: $BEFORE -> $AFTER"')">copy</button></div><div class="cb-body">
+<span class="kw">#!/bin/bash</span>
+<span class="cmd">set</span> <span class="flag">-euo pipefail</span>
+<br/>
+<span class="var">LOG_DIR</span>=<span class="str">"/var/log"</span>
+<span class="var">MAX_AGE</span>=<span class="num">30</span>
+<br/>
+<span class="var">BEFORE</span>=<span class="op">$(</span><span class="cmd">du</span> <span class="flag">-sh</span> <span class="str">"$LOG_DIR"</span> <span class="op">|</span> <span class="cmd">cut</span> <span class="flag">-f1</span><span class="op">)</span>
+<span class="cmd">find</span> <span class="str">"$LOG_DIR"</span> <span class="flag">-name</span> <span class="str">"*.gz"</span> <span class="flag">-mtime +$MAX_AGE -delete</span>
+<span class="var">AFTER</span>=<span class="op">$(</span><span class="cmd">du</span> <span class="flag">-sh</span> <span class="str">"$LOG_DIR"</span> <span class="op">|</span> <span class="cmd">cut</span> <span class="flag">-f1</span><span class="op">)</span>
+<span class="cmd">echo</span> <span class="str">"Freed space: $BEFORE → $AFTER"</span>
+  </div></div>
+</div>
+
+<div class="doc-section" id="best-practices">
+  <div class="sec-header"><div class="sec-num">10</div><h2>Best <em>Practices</em></h2><div class="sec-rule"></div></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Rule</th><th>Why</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>Always use <code>set -euo pipefail</code></td><td>Catch errors immediately</td><td>Put at top of every script</td></tr>
+      <tr><td>Quote all variables</td><td>Prevent word splitting with spaces in values</td><td><code>"$FILE"</code> not <code>$FILE</code></td></tr>
+      <tr><td>Use <code>local</code> in functions</td><td>Prevent global variable pollution</td><td><code>local VAR="value"</code></td></tr>
+      <tr><td>Validate inputs</td><td>Fail fast with clear errors</td><td>Check <code>$#</code> before using <code>$1</code></td></tr>
+      <tr><td>Use <code>trap</code> for cleanup</td><td>Always leave system in clean state</td><td><code>trap cleanup EXIT</code></td></tr>
+      <tr><td>Use <code>[[</code> not <code>[</code></td><td>Safer, more features, handles edge cases</td><td><code>[[ -f "$FILE" ]]</code></td></tr>
+      <tr><td>Log with timestamps</td><td>Know when things happened</td><td><code>echo "[$(date)] message"</code></td></tr>
+      <tr><td>Test scripts with <code>bash -n</code></td><td>Syntax check without running</td><td><code>bash -n script.sh</code></td></tr>
+      <tr><td>Use <code>shellcheck</code></td><td>Linter that catches bugs</td><td><code>sudo apt install shellcheck</code></td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<div class="doc-footer">
+  <div>← <a href="advanced.html">Advanced</a></div>
+  <div>Next: <a href="how-to-search.html">How to Search →</a></div>
+</div>
+
+</div></div>
+</div>
+<script src="shared/nav.js"></script>
+</body>
+</html>

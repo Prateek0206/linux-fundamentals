@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Linux Fundamentals — linux.docs</title>
+<link rel="stylesheet" href="shared/style.css"/>
+<style>
+  :root { --accent:#3ddc84; --accent2:#28a860; --accent-glow:rgba(61,220,132,.10); --accent-glow2:rgba(61,220,132,.05); }
+  .sec-num { border-color: rgba(61,220,132,.15); }
+  h3::before { background: var(--green); }
+
+  /* Boot diagram */
+  .boot-flow { display: flex; align-items: center; flex-wrap: wrap; gap: 0; margin: 16px 0; }
+  .boot-stage {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 16px; text-align: center; flex: 1; min-width: 100px;
+  }
+  .boot-stage-icon { font-size: 18px; margin-bottom: 4px; }
+  .boot-stage-name { font-family: var(--mono); font-size: 11px; color: var(--bright); }
+  .boot-stage-desc { font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .boot-arrow { color: var(--text3); font-size: 16px; padding: 0 4px; flex-shrink: 0; }
+
+  /* Signal table colored */
+  .sig-kill { color: var(--red); font-weight: 600; }
+  .sig-term { color: var(--amber); }
+  .sig-hup  { color: var(--blue); }
+  .sig-usr  { color: var(--green); }
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<nav id="topnav"></nav>
+<div id="mobile-drawer"></div>
+
+<div class="page-wrap">
+  <!-- TOC -->
+  <aside id="toc">
+    <div class="toc-section-label">Fundamentals</div>
+    <a class="toc-link" href="#what-is-linux">What Is Linux?</a>
+    <a class="toc-link" href="#kernel">The Kernel</a>
+    <a class="toc-link" href="#boot">Boot Process</a>
+    <a class="toc-link" href="#fhs">Filesystem Hierarchy</a>
+    <a class="toc-link" href="#processes">Processes</a>
+    <a class="toc-link" href="#signals">Signals</a>
+    <a class="toc-link" href="#shell">The Shell</a>
+    <a class="toc-link" href="#file-descriptors">File Descriptors</a>
+    <a class="toc-link" href="#pipes">Pipes & Redirection</a>
+    <a class="toc-link" href="#permissions">Permissions Deep Dive</a>
+    <a class="toc-link" href="#man">Man Pages</a>
+  </aside>
+
+  <div class="main-content">
+  <div class="content-inner">
+
+    <div class="page-hero">
+      <div class="page-hero-eyebrow">01 — Linux Fundamentals</div>
+      <h1><em>How Linux</em><br/>actually works</h1>
+      <p class="page-hero-lead">Not just what commands to type, but why. Understanding the internals makes you 10× faster at debugging, configuring, and reasoning about your system.</p>
+      <div class="hero-pills">
+        <div class="hero-pill"><span class="hero-pill-dot" style="background:var(--green)"></span>Kernel Space</div>
+        <div class="hero-pill"><span class="hero-pill-dot" style="background:var(--blue)"></span>User Space</div>
+        <div class="hero-pill"><span class="hero-pill-dot" style="background:var(--amber)"></span>Processes &amp; Signals</div>
+        <div class="hero-pill"><span class="hero-pill-dot" style="background:var(--purple)"></span>The Shell</div>
+      </div>
+    </div>
+
+    <!-- ── SECTION: WHAT IS LINUX ── -->
+    <div class="doc-section" id="what-is-linux">
+      <div class="sec-header"><div class="sec-num">01</div><h2>What <em>Is</em> Linux?</h2><div class="sec-rule"></div></div>
+
+      <div class="learn-box">
+        <div class="learn-box-title">The one-sentence answer</div>
+        <p>Linux is a <strong>kernel</strong> — the program that sits between your hardware and your software and manages everything. "Ubuntu", "Arch", "Fedora" are <strong>distributions</strong> (distros): they bundle the Linux kernel with software, a package manager, and tools to make it usable.</p>
+      </div>
+
+      <p>When people say "I use Linux", they really mean "I use a Linux-based operating system". The Linux kernel itself was written by Linus Torvalds in 1991 and is still actively developed today by thousands of contributors worldwide.</p>
+
+      <div class="table-wrap"><table>
+        <thead><tr><th>Layer</th><th>What it is</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>Hardware</td><td>Physical CPU, RAM, disk, network</td><td>Your Dell laptop</td></tr>
+          <tr><td>Kernel</td><td>Manages hardware, provides system calls</td><td>Linux 6.x</td></tr>
+          <tr><td>System libraries</td><td>C library, common tools</td><td>glibc, GNU coreutils</td></tr>
+          <tr><td>Init system</td><td>Starts services at boot</td><td>systemd</td></tr>
+          <tr><td>Shell</td><td>Your command interpreter</td><td>bash, zsh, fish</td></tr>
+          <tr><td>Applications</td><td>Programs you run</td><td>Syncthing, SSH, your scripts</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="callout c-learn"><div class="callout-ico">💡</div><div><strong>Kernel space vs User space:</strong> Programs you run (Syncthing, SSH, bash) live in <em>user space</em>. The kernel lives in <em>kernel space</em>. User programs can't directly access hardware — they have to ask the kernel via <strong>system calls</strong>. This is a fundamental security boundary.</div></div>
+    </div>
+
+    <!-- ── SECTION: KERNEL ── -->
+    <div class="doc-section" id="kernel">
+      <div class="sec-header"><div class="sec-num">02</div><h2>The <em>Kernel</em></h2><div class="sec-rule"></div></div>
+
+      <p>The kernel has five main jobs it does constantly:</p>
+
+      <div class="card-grid">
+        <div class="card"><div class="card-icon">⚙️</div><div class="card-title">Process Management</div><div class="card-desc">Creates, schedules, and kills processes. Decides which process runs on which CPU core at any given moment.</div></div>
+        <div class="card"><div class="card-icon">🧠</div><div class="card-title">Memory Management</div><div class="card-desc">Gives each process its own virtual memory space. Manages physical RAM and swap. Prevents processes from accessing each other's memory.</div></div>
+        <div class="card"><div class="card-icon">💾</div><div class="card-title">Filesystem</div><div class="card-desc">Translates file operations (open, read, write) into actual disk I/O. Manages inodes, directories, and permissions.</div></div>
+        <div class="card"><div class="card-icon">🌐</div><div class="card-title">Network Stack</div><div class="card-desc">Handles TCP/IP, UDP, sending and receiving packets, routing. All your SSH and Syncthing traffic goes through here.</div></div>
+        <div class="card"><div class="card-icon">🔌</div><div class="card-title">Device Drivers</div><div class="card-desc">Speaks to hardware (network card, disk, USB). A driver is code inside the kernel that knows how to talk to a specific device.</div></div>
+      </div>
+
+      <h3>System Calls — How Programs Talk to the Kernel</h3>
+      <p>When your Telegram bot script runs <code>curl</code> to send a request, here's what actually happens under the hood:</p>
+      <div class="term">
+        <div class="term-bar"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><div class="term-title">what happens when curl runs</div></div>
+        <div class="term-body">
+<span class="cmt">1. curl starts → kernel creates a process (fork/exec syscall)</span><br/>
+<span class="cmt">2. curl calls socket() → kernel creates a network socket</span><br/>
+<span class="cmt">3. curl calls connect() → kernel initiates TCP connection</span><br/>
+<span class="cmt">4. curl calls write() → kernel sends data over the socket</span><br/>
+<span class="cmt">5. curl calls read() → kernel waits for response, puts in buffer</span><br/>
+<span class="cmt">6. curl calls write(STDOUT) → kernel writes to terminal</span><br/>
+<span class="cmt">7. curl calls exit() → kernel cleans up, frees memory</span>
+        </div>
+      </div>
+      <p>You can watch these syscalls in real time with <code>strace</code>: <code>strace curl https://api.telegram.org</code> — it prints every kernel call. This is incredibly useful for debugging.</p>
+    </div>
+
+    <!-- ── SECTION: BOOT PROCESS ── -->
+    <div class="doc-section" id="boot">
+      <div class="sec-header"><div class="sec-num">03</div><h2>Boot <em>Process</em></h2><div class="sec-rule"></div></div>
+      <p>When you power on your Dell server, this chain of events happens before you see the login prompt:</p>
+
+      <div class="boot-flow">
+        <div class="boot-stage"><div class="boot-stage-icon">⚡</div><div class="boot-stage-name">Power On</div><div class="boot-stage-desc">CPU starts at fixed address</div></div>
+        <div class="boot-arrow">→</div>
+        <div class="boot-stage"><div class="boot-stage-icon">🔲</div><div class="boot-stage-name">UEFI/BIOS</div><div class="boot-stage-desc">Hardware check, finds boot disk</div></div>
+        <div class="boot-arrow">→</div>
+        <div class="boot-stage"><div class="boot-stage-icon">🟢</div><div class="boot-stage-name">GRUB</div><div class="boot-stage-desc">Bootloader, loads kernel</div></div>
+        <div class="boot-arrow">→</div>
+        <div class="boot-stage"><div class="boot-stage-icon">🐧</div><div class="boot-stage-name">Kernel</div><div class="boot-stage-desc">Loads drivers, mounts root</div></div>
+        <div class="boot-arrow">→</div>
+        <div class="boot-stage"><div class="boot-stage-icon">⚙️</div><div class="boot-stage-name">systemd</div><div class="boot-stage-desc">PID 1, starts all services</div></div>
+        <div class="boot-arrow">→</div>
+        <div class="boot-stage"><div class="boot-stage-icon">🖥</div><div class="boot-stage-name">Login</div><div class="boot-stage-desc">getty, then your shell</div></div>
+      </div>
+
+      <h3>GRUB — The Bootloader</h3>
+      <p>GRUB (Grand Unified Bootloader) is what shows the boot menu if you have multiple kernels or OS installed. Its config lives at <code>/etc/grub/grub.cfg</code> (auto-generated) and <code>/etc/default/grub</code> (where you edit settings). After editing: <code>sudo update-grub</code>.</p>
+
+      <h3>systemd — PID 1</h3>
+      <p>The first process the kernel starts is <strong>PID 1</strong> — on Ubuntu, this is <code>systemd</code>. It's the parent of all other processes. If PID 1 dies, the system panics. systemd reads its unit files from <code>/etc/systemd/system/</code> and <code>/lib/systemd/system/</code> and starts services in parallel (much faster than the old sequential SysV init).</p>
+
+      <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">boot analysis</span></div><button class="copy-btn" onclick="doCopy(this,'systemd-analyze\nsystemd-analyze blame\nsystemd-analyze critical-chain')">copy</button></div><div class="cb-body">
+<span class="cmd">systemd-analyze</span>              <span class="cmt"># Total boot time</span>
+<span class="cmd">systemd-analyze blame</span>         <span class="cmt"># Which services took longest</span>
+<span class="cmd">systemd-analyze critical-chain</span> <span class="cmt"># What was the bottleneck</span>
+      </div></div>
+    </div>
+
+    <!-- ── SECTION: FHS ── -->
+    <div class="doc-section" id="fhs">
+      <div class="sec-header"><div class="sec-num">04</div><h2>Filesystem <em>Hierarchy</em></h2><div class="sec-rule"></div></div>
+
+      <div class="learn-box">
+        <div class="learn-box-title">Everything is a file</div>
+        <p>In Linux, almost everything is represented as a file. Your keyboard is a file (<code>/dev/input/event0</code>). Network interfaces are files. The CPU's temperature is a file (<code>/sys/class/thermal/thermal_zone0/temp</code>). Even running processes are files in <code>/proc/</code>. This "everything is a file" philosophy means you can use the same tools (cat, echo, grep) on almost anything.</p>
+      </div>
+
+      <div class="table-wrap"><table>
+        <thead><tr><th>Directory</th><th>Purpose</th><th>Examples</th></tr></thead>
+        <tbody>
+          <tr><td><code>/</code></td><td>Root — everything starts here</td><td>—</td></tr>
+          <tr><td><code>/bin</code></td><td>Essential binaries (symlink to /usr/bin on Ubuntu 22+)</td><td>ls, cp, bash</td></tr>
+          <tr><td><code>/boot</code></td><td>Kernel images, GRUB config</td><td>vmlinuz, initrd.img</td></tr>
+          <tr><td><code>/dev</code></td><td>Device files — virtual, created by kernel</td><td>sda, null, random, tty</td></tr>
+          <tr><td><code>/etc</code></td><td>System-wide config files (editable text)</td><td>ssh/sshd_config, fstab, hosts</td></tr>
+          <tr><td><code>/home</code></td><td>User home directories</td><td>/home/dell</td></tr>
+          <tr><td><code>/lib</code></td><td>Shared libraries needed by /bin and /sbin</td><td>libc.so, libm.so</td></tr>
+          <tr><td><code>/mnt</code></td><td>Temporary mount points for drives</td><td>USB drives, external disks</td></tr>
+          <tr><td><code>/opt</code></td><td>Optional third-party software</td><td>Syncthing, custom apps</td></tr>
+          <tr><td><code>/proc</code></td><td>Virtual — live kernel and process info</td><td>/proc/cpuinfo, /proc/meminfo</td></tr>
+          <tr><td><code>/run</code></td><td>Runtime data since last boot (in RAM)</td><td>PIDs, sockets, lock files</td></tr>
+          <tr><td><code>/sys</code></td><td>Virtual — hardware/kernel info, writable</td><td>CPU freq, temperature, network</td></tr>
+          <tr><td><code>/tmp</code></td><td>Temporary files, cleared on reboot</td><td>Build artifacts, temp downloads</td></tr>
+          <tr><td><code>/usr</code></td><td>User programs and data (read-only at runtime)</td><td>/usr/bin, /usr/lib, /usr/share</td></tr>
+          <tr><td><code>/var</code></td><td>Variable data — logs, databases, caches</td><td>/var/log, /var/cache, /var/lib</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Inodes — What Files Really Are</h3>
+      <p>Every file on Linux is represented by an <strong>inode</strong> — a data structure that stores: file size, permissions, owner, timestamps, and pointers to where the actual data is on disk. The filename is just a label that points to an inode. This is why <code>mv</code> is instant (it just changes the label), and why hard links work (two names can point to the same inode).</p>
+      <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">inodes</span></div><button class="copy-btn" onclick="doCopy(this,'ls -i file.txt\nstat file.txt\ndf -i\nfind / -inum 123456')">copy</button></div><div class="cb-body">
+<span class="cmd">ls</span> <span class="flag">-i</span> <span class="path">file.txt</span>    <span class="cmt"># Show inode number</span>
+<span class="cmd">stat</span> <span class="path">file.txt</span>    <span class="cmt"># Full inode info: size, perms, timestamps</span>
+<span class="cmd">df</span> <span class="flag">-i</span>           <span class="cmt"># Inode usage (can run out before disk is full!)</span>
+<span class="cmd">find</span> / <span class="flag">-inum</span> <span class="num">123456</span>  <span class="cmt"># Find file by inode number</span>
+      </div></div>
+    </div>
+
+    <!-- ── SECTION: PROCESSES ── -->
+    <div class="doc-section" id="processes">
+      <div class="sec-header"><div class="sec-num">05</div><h2><em>Processes</em></h2><div class="sec-rule"></div></div>
+
+      <p>A process is a running instance of a program. When you run <code>ls</code>, the kernel creates a process, runs the ls program in it, and then destroys the process when it finishes. Every process has a unique <strong>PID</strong> (Process ID).</p>
+
+      <h3>Process States</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>State</th><th>Code</th><th>What it means</th></tr></thead>
+        <tbody>
+          <tr><td>Running</td><td><code>R</code></td><td>Currently using the CPU</td></tr>
+          <tr><td>Sleeping</td><td><code>S</code></td><td>Waiting for something (I/O, timer, event)</td></tr>
+          <tr><td>Disk Sleep</td><td><code>D</code></td><td>Uninterruptible sleep — waiting for disk I/O</td></tr>
+          <tr><td>Stopped</td><td><code>T</code></td><td>Paused (Ctrl+Z)</td></tr>
+          <tr><td>Zombie</td><td><code>Z</code></td><td>Finished but parent hasn't read exit code yet</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">process commands</span></div><button class="copy-btn" onclick="doCopy(this,'ps aux\nps aux | grep syncthing\npgrep syncthing\npstree\nhtop\ntop\nkill 1234\nkill -9 1234\npkill syncthing\nnohup command &\njobs\nbg %1\nfg %1')">copy</button></div><div class="cb-body">
+<span class="cmd">ps aux</span>                  <span class="cmt"># All running processes</span>
+<span class="cmd">ps aux</span> <span class="op">|</span> <span class="cmd">grep</span> <span class="str">syncthing</span>  <span class="cmt"># Find a specific process</span>
+<span class="cmd">pgrep</span> <span class="str">syncthing</span>          <span class="cmt"># Just get the PID</span>
+<span class="cmd">pstree</span>                   <span class="cmt"># Process tree — who spawned what</span>
+<span class="cmd">htop</span>                     <span class="cmt"># Interactive monitor</span>
+<span class="cmd">kill</span> <span class="num">1234</span>                <span class="cmt"># Graceful terminate (SIGTERM)</span>
+<span class="cmd">kill</span> <span class="flag">-9</span> <span class="num">1234</span>             <span class="cmt"># Force kill (SIGKILL) — no cleanup</span>
+<span class="cmd">pkill</span> <span class="str">syncthing</span>          <span class="cmt"># Kill by name</span>
+<span class="cmd">nohup</span> <span class="str">command</span> <span class="op">&</span>          <span class="cmt"># Run in background, keep after logout</span>
+<span class="cmd">jobs</span>                     <span class="cmt"># List background jobs in current shell</span>
+<span class="cmd">bg</span> %<span class="num">1</span>                    <span class="cmt"># Resume job 1 in background</span>
+<span class="cmd">fg</span> %<span class="num">1</span>                    <span class="cmt"># Bring job 1 to foreground</span>
+      </div></div>
+    </div>
+
+    <!-- ── SECTION: SIGNALS ── -->
+    <div class="doc-section" id="signals">
+      <div class="sec-header"><div class="sec-num">06</div><h2><em>Signals</em></h2><div class="sec-rule"></div></div>
+
+      <p>Signals are notifications sent to a process by the kernel or another process. When you press Ctrl+C, your terminal sends SIGINT to the foreground process. Programs can choose to handle most signals, but SIGKILL and SIGSTOP cannot be caught or ignored.</p>
+
+      <div class="table-wrap"><table>
+        <thead><tr><th>Signal</th><th>Number</th><th>Shortcut</th><th>Meaning</th><th>Can ignore?</th></tr></thead>
+        <tbody>
+          <tr><td><code class="sig-term">SIGTERM</code></td><td>15</td><td>—</td><td>Graceful shutdown request. Default for <code>kill</code>.</td><td>Yes</td></tr>
+          <tr><td><code class="sig-kill">SIGKILL</code></td><td>9</td><td>—</td><td>Force kill immediately. No cleanup possible.</td><td>No</td></tr>
+          <tr><td><code class="sig-hup">SIGHUP</code></td><td>1</td><td>—</td><td>"Hangup" — reload config for many daemons (nginx, sshd)</td><td>Yes</td></tr>
+          <tr><td><code>SIGINT</code></td><td>2</td><td>Ctrl+C</td><td>Interrupt — politely cancel</td><td>Yes</td></tr>
+          <tr><td><code>SIGQUIT</code></td><td>3</td><td>Ctrl+\</td><td>Quit + dump core</td><td>Yes</td></tr>
+          <tr><td><code>SIGSTOP</code></td><td>19</td><td>Ctrl+Z</td><td>Pause process. Cannot be caught.</td><td>No</td></tr>
+          <tr><td><code>SIGCONT</code></td><td>18</td><td>—</td><td>Resume a stopped process</td><td>Yes</td></tr>
+          <tr><td><code class="sig-usr">SIGUSR1/2</code></td><td>10,12</td><td>—</td><td>User-defined — app decides what to do</td><td>Yes</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="callout c-warn"><div class="callout-ico">⚠️</div><div><strong>Always try SIGTERM before SIGKILL.</strong> <code>kill -9</code> (SIGKILL) prevents the process from cleaning up — open files may stay locked, databases may corrupt. Use it only when SIGTERM doesn't work.</div></div>
+    </div>
+
+    <!-- ── SECTION: THE SHELL ── -->
+    <div class="doc-section" id="shell">
+      <div class="sec-header"><div class="sec-num">07</div><h2>The <em>Shell</em></h2><div class="sec-rule"></div></div>
+
+      <p>The shell is just a program — it reads what you type, interprets it, and runs commands. When you SSH into your Dell server, you get a bash shell. Bash is by far the most common on Linux servers.</p>
+
+      <div class="learn-box">
+        <div class="learn-box-title">What happens when you type a command</div>
+        <p>When you type <code>ls -la /home</code>: bash splits it into tokens (<code>ls</code>, <code>-la</code>, <code>/home</code>). It looks for <code>ls</code> in directories listed in the <code>$PATH</code> environment variable. It calls <code>fork()</code> to create a child process and <code>exec()</code> to replace it with the <code>ls</code> program. ls runs, prints output, exits. Bash waits for it to finish (or doesn't, if you added <code>&</code>), then shows your prompt again.</p>
+      </div>
+
+      <h3>Important Shell Concepts</h3>
+      <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">shell internals</span></div><button class="copy-btn" onclick="doCopy(this,'echo $PATH\nwhich ls\ntype ls\necho $SHELL\necho $$\necho $?\nenv\nexport MYVAR=hello\nunset MYVAR\nalias ll=\"ls -la\"\nhistory\n!!\n!grep\nCtrl+R  # search history')">copy</button></div><div class="cb-body">
+<span class="cmd">echo</span> <span class="var">$PATH</span>         <span class="cmt"># Where bash looks for programs</span>
+<span class="cmd">which</span> <span class="str">ls</span>          <span class="cmt"># Full path to a command</span>
+<span class="cmd">type</span>  <span class="str">ls</span>          <span class="cmt"># Is it a file, alias, or builtin?</span>
+<span class="cmd">echo</span> <span class="var">$SHELL</span>        <span class="cmt"># Your current shell</span>
+<span class="cmd">echo</span> <span class="var">$$</span>           <span class="cmt"># PID of current shell</span>
+<span class="cmd">echo</span> <span class="var">$?</span>           <span class="cmt"># Exit code of last command (0=success)</span>
+<span class="cmd">env</span>               <span class="cmt"># All environment variables</span>
+<span class="cmd">export</span> <span class="var">MYVAR</span>=<span class="str">hello</span>  <span class="cmt"># Set env variable (available to child processes)</span>
+<span class="cmd">alias</span> <span class="str">ll</span>=<span class="str">"ls -la"</span>  <span class="cmt"># Create a shortcut</span>
+<span class="cmd">history</span>           <span class="cmt"># Command history</span>
+<span class="str">!!</span>                <span class="cmt"># Repeat last command</span>
+<span class="str">!grep</span>             <span class="cmt"># Repeat last command starting with 'grep'</span>
+      </div></div>
+
+      <h3>Shell Config Files</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>File</th><th>When it runs</th><th>What to put in it</th></tr></thead>
+        <tbody>
+          <tr><td><code>~/.bashrc</code></td><td>Every new interactive shell</td><td>aliases, functions, prompt, PATH additions</td></tr>
+          <tr><td><code>~/.bash_profile</code></td><td>Login shells only</td><td>env variables, start SSH agent</td></tr>
+          <tr><td><code>~/.bash_logout</code></td><td>On logout</td><td>cleanup tasks</td></tr>
+          <tr><td><code>/etc/profile</code></td><td>All users, login shells</td><td>System-wide defaults</td></tr>
+          <tr><td><code>/etc/bashrc</code></td><td>All users, interactive shells</td><td>System-wide functions</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- ── SECTION: FILE DESCRIPTORS ── -->
+    <div class="doc-section" id="file-descriptors">
+      <div class="sec-header"><div class="sec-num">08</div><h2>File <em>Descriptors</em></h2><div class="sec-rule"></div></div>
+
+      <div class="learn-box">
+        <div class="learn-box-title">Everything is a file — including input and output</div>
+        <p>Every process gets three standard "files" connected to it at birth: <strong>stdin</strong> (input, FD 0), <strong>stdout</strong> (output, FD 1), and <strong>stderr</strong> (error output, FD 2). When you run a command in the terminal, stdin is your keyboard, stdout is your screen, and stderr is also your screen (but separate so you can redirect them independently).</p>
+      </div>
+
+      <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">redirection</span></div><button class="copy-btn" onclick="doCopy(this,'command > file.txt\ncommand >> file.txt\ncommand 2> errors.txt\ncommand 2>&1\ncommand > /dev/null 2>&1\ncommand < input.txt\ncommand &> all-output.txt')">copy</button></div><div class="cb-body">
+<span class="cmd">command</span> <span class="op">></span> <span class="path">file.txt</span>         <span class="cmt"># stdout to file (overwrites)</span>
+<span class="cmd">command</span> <span class="op">>></span> <span class="path">file.txt</span>        <span class="cmt"># stdout to file (appends)</span>
+<span class="cmd">command</span> <span class="num">2</span><span class="op">></span> <span class="path">errors.txt</span>     <span class="cmt"># stderr to file</span>
+<span class="cmd">command</span> <span class="num">2</span><span class="op">>&</span><span class="num">1</span>              <span class="cmt"># stderr → stdout (merge them)</span>
+<span class="cmd">command</span> <span class="op">></span> /dev/null <span class="num">2</span><span class="op">>&</span><span class="num">1</span> <span class="cmt"># Discard ALL output (silence a cron job)</span>
+<span class="cmd">command</span> <span class="op"><</span> <span class="path">input.txt</span>       <span class="cmt"># Feed file as stdin</span>
+<span class="cmd">command</span> <span class="op">&></span> <span class="path">all-output.txt</span>  <span class="cmt"># Both stdout and stderr to file</span>
+      </div></div>
+    </div>
+
+    <!-- ── SECTION: PIPES ── -->
+    <div class="doc-section" id="pipes">
+      <div class="sec-header"><div class="sec-num">09</div><h2>Pipes <em>&amp;</em> Redirection</h2><div class="sec-rule"></div></div>
+
+      <p>A pipe <code>|</code> connects the stdout of one command to the stdin of the next. This is the Unix philosophy in action: small tools that do one thing well, chained together to do complex things.</p>
+
+      <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">real pipe examples</span></div><button class="copy-btn" onclick="doCopy(this,'ps aux | grep syncthing\ncat /var/log/auth.log | grep \"Failed\" | wc -l\nls -la | sort -k5 -n | tail -10\njournalctl -u ssh | grep \"Accepted\" | awk \"{print $11}\" | sort | uniq -c | sort -rn\ncat /etc/passwd | cut -d: -f1 | sort')">copy</button></div><div class="cb-body">
+<span class="cmd">ps aux</span> <span class="op">|</span> <span class="cmd">grep</span> <span class="str">syncthing</span>                            <span class="cmt"># Find process</span>
+<span class="cmd">cat</span> <span class="path">/var/log/auth.log</span> <span class="op">|</span> <span class="cmd">grep</span> <span class="str">"Failed"</span> <span class="op">|</span> <span class="cmd">wc -l</span>   <span class="cmt"># Count failed logins</span>
+<span class="cmd">ls</span> <span class="flag">-la</span> <span class="op">|</span> <span class="cmd">sort</span> <span class="flag">-k5 -n</span> <span class="op">|</span> <span class="cmd">tail</span> <span class="flag">-10</span>                <span class="cmt"># 10 biggest files</span>
+<span class="cmt"># Find which IPs successfully logged in via SSH, sorted by frequency:</span>
+<span class="cmd">journalctl</span> <span class="flag">-u</span> <span class="str">ssh</span> <span class="op">|</span> <span class="cmd">grep</span> <span class="str">"Accepted"</span> <span class="op">|</span> <span class="cmd">awk</span> <span class="str">'{print $11}'</span> <span class="op">|</span> <span class="cmd">sort</span> <span class="op">|</span> <span class="cmd">uniq -c</span> <span class="op">|</span> <span class="cmd">sort -rn</span>
+      </div></div>
+
+      <h3>Useful Text Processing Commands</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Command</th><th>Does</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td><code>grep</code></td><td>Filter lines matching a pattern</td><td><code>grep "error" app.log</code></td></tr>
+          <tr><td><code>grep -v</code></td><td>Lines NOT matching pattern</td><td><code>grep -v "DEBUG"</code></td></tr>
+          <tr><td><code>awk</code></td><td>Extract columns, process fields</td><td><code>awk '{print $2}'</code></td></tr>
+          <tr><td><code>sed</code></td><td>Find and replace text in stream</td><td><code>sed 's/old/new/g'</code></td></tr>
+          <tr><td><code>cut</code></td><td>Extract columns by delimiter</td><td><code>cut -d: -f1 /etc/passwd</code></td></tr>
+          <tr><td><code>sort</code></td><td>Sort lines alphabetically or numerically</td><td><code>sort -n -r</code></td></tr>
+          <tr><td><code>uniq</code></td><td>Remove duplicates (after sort)</td><td><code>sort | uniq -c</code></td></tr>
+          <tr><td><code>wc</code></td><td>Count lines, words, chars</td><td><code>wc -l file.txt</code></td></tr>
+          <tr><td><code>head/tail</code></td><td>First/last N lines</td><td><code>tail -f /var/log/syslog</code></td></tr>
+          <tr><td><code>tr</code></td><td>Translate/delete characters</td><td><code>tr -d '\n'</code></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- ── SECTION: PERMISSIONS ── -->
+    <div class="doc-section" id="permissions">
+      <div class="sec-header"><div class="sec-num">10</div><h2>Permissions <em>Deep Dive</em></h2><div class="sec-rule"></div></div>
+
+      <p>Linux permissions are built around three entities: <strong>owner</strong>, <strong>group</strong>, and <strong>others</strong>. Each gets three bits: <strong>r</strong>ead (4), <strong>w</strong>rite (2), e<strong>x</strong>ecute (1).</p>
+
+      <div class="term"><div class="term-bar"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><div class="term-title">permission bits explained</div></div><div class="term-body">
+<span style="color:var(--amber)">-rwxr-xr--</span>   1   dell   dell   4096   Jan 1   script.sh<br/><br/>
+<span class="cmt">│└─┬─┘└─┬─┘└─┬─┘</span><br/>
+<span class="cmt">│  │    │    └── others: r-- = 4 (read only)</span><br/>
+<span class="cmt">│  │    └─────── group:  r-x = 5 (read + exec)</span><br/>
+<span class="cmt">│  └──────────── owner:  rwx = 7 (full access)</span><br/>
+<span class="cmt">└─────────────── - = file, d = dir, l = symlink</span><br/><br/>
+<span class="cmt">Binary: rwx = 111 = 7 | rw- = 110 = 6 | r-x = 101 = 5 | r-- = 100 = 4</span>
+      </div></div>
+
+      <h3>Common Permission Patterns</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Octal</th><th>Symbolic</th><th>Use case</th></tr></thead>
+        <tbody>
+          <tr><td><code>755</code></td><td>rwxr-xr-x</td><td>Scripts, executables, public directories</td></tr>
+          <tr><td><code>644</code></td><td>rw-r--r--</td><td>Regular files, config files</td></tr>
+          <tr><td><code>600</code></td><td>rw-------</td><td>Private keys, secret files</td></tr>
+          <tr><td><code>700</code></td><td>rwx------</td><td>Private scripts/directories</td></tr>
+          <tr><td><code>777</code></td><td>rwxrwxrwx</td><td>Temporary (avoid in production!)</td></tr>
+          <tr><td><code>400</code></td><td>r--------</td><td>Read-only for owner only (SSH private key)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Special Bits: SUID, SGID, Sticky</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Bit</th><th>On files</th><th>On directories</th><th>Set with</th></tr></thead>
+        <tbody>
+          <tr><td><strong>SUID</strong> (4000)</td><td>Run as file's owner (e.g. passwd runs as root)</td><td>—</td><td><code>chmod u+s file</code></td></tr>
+          <tr><td><strong>SGID</strong> (2000)</td><td>Run as file's group</td><td>New files inherit directory's group</td><td><code>chmod g+s dir</code></td></tr>
+          <tr><td><strong>Sticky</strong> (1000)</td><td>—</td><td>Only owner can delete their files (used on /tmp)</td><td><code>chmod +t dir</code></td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>ACLs — Beyond Basic Permissions</h3>
+      <p>When owner/group/others isn't granular enough, use Access Control Lists:</p>
+      <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">ACLs</span></div><button class="copy-btn" onclick="doCopy(this,'getfacl file.txt\nsetfacl -m u:alice:rw file.txt\nsetfacl -m g:devs:rx /srv/\nsetfacl -x u:alice file.txt\nsetfacl -b file.txt')">copy</button></div><div class="cb-body">
+<span class="cmd">getfacl</span> <span class="path">file.txt</span>              <span class="cmt"># Show ACL</span>
+<span class="cmd">setfacl</span> <span class="flag">-m</span> <span class="arg">u:alice:rw</span> <span class="path">file.txt</span>  <span class="cmt"># Give alice read+write</span>
+<span class="cmd">setfacl</span> <span class="flag">-m</span> <span class="arg">g:devs:rx</span> <span class="path">/srv/</span>    <span class="cmt"># Give group devs read+exec on dir</span>
+<span class="cmd">setfacl</span> <span class="flag">-x</span> <span class="arg">u:alice</span> <span class="path">file.txt</span>  <span class="cmt"># Remove alice's entry</span>
+<span class="cmd">setfacl</span> <span class="flag">-b</span> <span class="path">file.txt</span>           <span class="cmt"># Remove ALL ACLs</span>
+      </div></div>
+    </div>
+
+    <!-- ── SECTION: MAN PAGES ── -->
+    <div class="doc-section" id="man">
+      <div class="sec-header"><div class="sec-num">11</div><h2><em>Man Pages</em></h2><div class="sec-rule"></div></div>
+
+      <p>The manual pages (<code>man</code>) are the authoritative documentation for every command on your system. They're built-in, always accurate for your version, and available offline. Learning to read them efficiently is a superpower.</p>
+
+      <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">man page navigation</span></div><button class="copy-btn" onclick="doCopy(this,'man ls\nman 5 passwd\nman -k keyword\nman -f ls\nman man')">copy</button></div><div class="cb-body">
+<span class="cmd">man</span> <span class="str">ls</span>             <span class="cmt"># Open ls man page</span>
+<span class="cmd">man</span> <span class="num">5</span> <span class="str">passwd</span>       <span class="cmt"># Section 5 = file formats (not the command)</span>
+<span class="cmd">man</span> <span class="flag">-k</span> <span class="str">keyword</span>     <span class="cmt"># Search all man pages (like apropos)</span>
+<span class="cmd">man</span> <span class="flag">-f</span> <span class="str">ls</span>          <span class="cmt"># One-line description</span>
+<span class="cmt"># Inside man: /search ← search | n ← next | q ← quit | G ← end | g ← start</span>
+      </div></div>
+
+      <div class="table-wrap"><table>
+        <thead><tr><th>Section</th><th>Content</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>User commands (ls, cat, ssh)</td></tr>
+          <tr><td>2</td><td>System calls (open, fork, write)</td></tr>
+          <tr><td>3</td><td>C library functions</td></tr>
+          <tr><td>4</td><td>Device files (/dev/*)</td></tr>
+          <tr><td>5</td><td>File formats (fstab, passwd, hosts)</td></tr>
+          <tr><td>6</td><td>Games</td></tr>
+          <tr><td>7</td><td>Miscellaneous (protocols, standards)</td></tr>
+          <tr><td>8</td><td>Admin commands (systemctl, mount, fdisk)</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="callout c-tip"><div class="callout-ico">💡</div><div>Use <code>tldr ls</code> (install: <code>sudo apt install tldr</code>) for practical examples instead of full man pages. It shows the most common uses of any command in a quick cheat format. Great companion to man pages.</div></div>
+
+    </div>
+
+    <div class="doc-footer">
+      <div>← <a href="index.html">Home</a></div>
+      <div>Next: <a href="distros.html">Distro Guide →</a></div>
+    </div>
+
+  </div>
+  </div>
+</div>
+
+<script src="shared/nav.js"></script>
+</body>
+</html>

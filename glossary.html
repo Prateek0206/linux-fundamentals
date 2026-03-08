@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Glossary — linux.docs</title>
+<link rel="stylesheet" href="shared/style.css"/>
+<style>
+  :root{--accent:#a87de8;--accent2:#7c56c0;--accent-glow:rgba(168,125,232,.10);--accent-glow2:rgba(168,125,232,.05);}
+  h3::before{background:var(--purple)}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div><nav id="topnav"></nav><div id="mobile-drawer"></div>
+<div class="page-wrap">
+<aside id="toc">
+  <div class="toc-section-label">Browse</div>
+  <a class="toc-link" href="#beginner-terms">🟢 Beginner</a>
+  <a class="toc-link" href="#intermediate-terms">🟡 Intermediate</a>
+  <a class="toc-link" href="#advanced-terms">🔴 Advanced</a>
+</aside>
+<div class="main-content"><div class="content-inner">
+
+<div class="page-hero">
+  <div class="page-hero-eyebrow">04 — Glossary</div>
+  <h1>Linux <em>Jargon</em><br/>Explained</h1>
+  <p class="page-hero-lead">60+ Linux terms explained in plain English — from "what is root?" to "what is cgroups?". Click any term to expand. Search to filter instantly.</p>
+</div>
+
+<div class="gloss-search-wrap">
+  <input class="gloss-search" type="text" id="glossSearch" placeholder="Search terms, e.g. 'daemon', 'kernel', 'inode'…" oninput="filterGloss(this.value)"/>
+</div>
+<div class="gloss-filter-row">
+  <button class="gloss-filter active" onclick="filterByLevel(this,'all')">All</button>
+  <button class="gloss-filter" onclick="filterByLevel(this,'beginner')">🟢 Beginner</button>
+  <button class="gloss-filter" onclick="filterByLevel(this,'intermediate')">🟡 Intermediate</button>
+  <button class="gloss-filter" onclick="filterByLevel(this,'advanced')">🔴 Advanced</button>
+</div>
+
+<div class="gloss-grid" id="glossGrid">
+
+<!-- ═══ BEGINNER ═══ -->
+<div class="gloss-item" data-level="beginner" id="beginner-terms">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">root</span><span class="gloss-short">The all-powerful admin account (UID 0)</span><span class="gloss-level gl-beg">beginner</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">Root is the superuser account on Linux — UID 0 — with unlimited permissions. You should never log in as root daily. Use <code>sudo</code> instead for one-off admin commands. "sudo" = "superuser do". Every time you type sudo, it logs the command for auditing.</div><div class="gloss-example-label">Example</div><div class="gloss-example">sudo apt install nginx   # run as root, just this once<br/>sudo whoami             # prints "root"<br/>id                      # shows your UID/GID</div></div>
+</div>
+
+<div class="gloss-item" data-level="beginner">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">terminal / shell</span><span class="gloss-short">The text interface to your computer</span><span class="gloss-level gl-beg">beginner</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">A <strong>terminal</strong> is the window displaying text. A <strong>shell</strong> is the program inside it interpreting your commands. When you SSH into your Dell server, you get a bash shell. Common shells: <strong>bash</strong> (default on Ubuntu), <strong>zsh</strong> (macOS default, very popular), <strong>fish</strong> (beginner-friendly), <strong>sh</strong> (minimal POSIX shell).</div><div class="gloss-example-label">Example</div><div class="gloss-example">echo $SHELL    # /bin/bash or /bin/zsh<br/>bash --version # GNU bash, version 5.x</div></div>
+</div>
+
+<div class="gloss-item" data-level="beginner">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">sudo</span><span class="gloss-short">Run a command as root — temporary admin power</span><span class="gloss-level gl-beg">beginner</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">sudo = "superuser do". It runs one command with root privileges. Your user must be in the <code>sudo</code> group. After typing your password, sudo caches it for 15 minutes. Every sudo command is logged in <code>/var/log/auth.log</code>. Use <code>sudo -i</code> for a root shell, but exit it quickly — it's dangerous to work as root.</div><div class="gloss-example-label">Example</div><div class="gloss-example">sudo systemctl restart ssh<br/>sudo -l   # what can I sudo?</div></div>
+</div>
+
+<div class="gloss-item" data-level="beginner">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">process</span><span class="gloss-short">A running instance of a program with a PID</span><span class="gloss-level gl-beg">beginner</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">Every running program is a process with a unique PID (Process ID). The kernel tracks CPU usage, memory, and state for every process. Short-lived processes like <code>ls</code> die immediately. Long-running ones like Syncthing and SSH stay alive indefinitely. Process 1 is always <strong>systemd</strong> — the parent of all others.</div><div class="gloss-example-label">Example</div><div class="gloss-example">ps aux            # list all processes<br/>pgrep syncthing   # get syncthing's PID<br/>kill -9 1234      # force-kill PID 1234</div></div>
+</div>
+
+<div class="gloss-item" data-level="beginner">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">daemon</span><span class="gloss-short">A background service that runs silently (no terminal)</span><span class="gloss-level gl-beg">beginner</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">A daemon (pronounced "dee-mon") is a background process with no terminal attached. Names typically end in 'd': <code>sshd</code>, <code>crond</code>, <code>nginx</code>. They start at boot and keep running. Your Telegram bot as a systemd service is a daemon. They're managed by systemd on modern Ubuntu.</div><div class="gloss-example-label">Example</div><div class="gloss-example">systemctl list-units --type=service  # all daemons<br/>systemctl status sshd</div></div>
+</div>
+
+<div class="gloss-item" data-level="beginner">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">path</span><span class="gloss-short">The address of a file or directory on the filesystem</span><span class="gloss-level gl-beg">beginner</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full"><strong>Absolute path</strong>: starts from root <code>/</code> — always works from anywhere: <code>/home/dell/scripts/notify.sh</code>. <strong>Relative path</strong>: from your current directory: <code>scripts/notify.sh</code>. <code>$PATH</code> is a colon-separated list of directories the shell searches when you type a command name.</div><div class="gloss-example-label">Example</div><div class="gloss-example">echo $PATH      # /usr/local/bin:/usr/bin:...<br/>which python3   # /usr/bin/python3</div></div>
+</div>
+
+<div class="gloss-item" data-level="beginner">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">permissions (rwx)</span><span class="gloss-short">Who can read, write, or execute a file</span><span class="gloss-level gl-beg">beginner</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">Every file has three permission sets: <strong>owner</strong>, <strong>group</strong>, <strong>others</strong>. Each set has r (read=4), w (write=2), x (execute=1). <code>chmod 755</code> = owner can do everything, group and others can read+exec. <code>chmod 600</code> = only owner can read/write (for SSH keys and secrets).</div><div class="gloss-example-label">Example</div><div class="gloss-example">ls -la script.sh    # -rwxr-xr-x<br/>chmod +x script.sh  # make executable<br/>chmod 600 id_ed25519 # secure SSH key</div></div>
+</div>
+
+<div class="gloss-item" data-level="beginner">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">package</span><span class="gloss-short">A bundle of software files ready to install</span><span class="gloss-level gl-beg">beginner</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">A package is an archive containing a program's binaries, config files, man pages, and dependency information. Ubuntu uses <code>.deb</code> packages managed by <code>apt</code>. Arch uses <code>.pkg.tar.zst</code> managed by <code>pacman</code>. The package manager handles installing, upgrading, and removing packages, automatically pulling in dependencies.</div><div class="gloss-example-label">Example</div><div class="gloss-example">sudo apt install htop   # installs htop package<br/>apt show nginx         # info about nginx package</div></div>
+</div>
+
+<div class="gloss-item" data-level="beginner">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">SSH</span><span class="gloss-short">Secure Shell — encrypted remote access to servers</span><span class="gloss-level gl-beg">beginner</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">SSH (Secure Shell) lets you remotely control a computer over a network, securely encrypted. When you're on your Lenovo and run <code>ssh dell@192.168.1.x</code>, you get a shell on the Dell as if you were physically there. SSH uses port 22 by default and can authenticate with passwords or cryptographic keys (much more secure).</div><div class="gloss-example-label">Example</div><div class="gloss-example">ssh dell@192.168.1.50      # connect<br/>ssh-keygen -t ed25519      # generate key pair<br/>ssh-copy-id dell@host      # copy key to server</div></div>
+</div>
+
+<div class="gloss-item" data-level="beginner">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">kernel</span><span class="gloss-short">The core of the OS — bridge between hardware and software</span><span class="gloss-level gl-beg">beginner</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">The Linux kernel is the lowest-level software — it runs in a privileged "kernel space" and directly manages hardware: CPU scheduling, memory allocation, disk I/O, network, and device drivers. User programs run in "user space" and ask the kernel to do things via system calls. You rarely interact with it directly, but <code>uname -r</code> shows which version you're running.</div><div class="gloss-example-label">Example</div><div class="gloss-example">uname -r         # 6.8.0-52-generic<br/>uname -a         # full system info</div></div>
+</div>
+
+<div class="gloss-item" data-level="beginner">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">distro</span><span class="gloss-short">A Linux distribution — the kernel bundled with software</span><span class="gloss-level gl-beg">beginner</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">A Linux distribution (distro) bundles the Linux kernel with a package manager, init system, default software, and community support. The kernel is the same; what differs is philosophy, defaults, and tooling. Ubuntu, Arch, Fedora, Debian are all distros — like different car brands using the same engine.</div><div class="gloss-example-label">Example</div><div class="gloss-example">lsb_release -a   # Ubuntu 24.04.2 LTS<br/>cat /etc/os-release</div></div>
+</div>
+
+<div class="gloss-item" data-level="beginner">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">stdout / stderr / stdin</span><span class="gloss-short">Standard output, error, and input streams</span><span class="gloss-level gl-beg">beginner</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">Every process gets three file streams: <strong>stdin</strong> (FD 0) = input (keyboard), <strong>stdout</strong> (FD 1) = normal output (your screen), <strong>stderr</strong> (FD 2) = error output (also screen, but separate). You can redirect them: <code>command &gt; out.txt</code> redirects stdout, <code>command 2&gt; err.txt</code> redirects stderr, <code>command &gt;/dev/null 2&gt;&amp;1</code> discards everything (used in cron jobs).</div><div class="gloss-example-label">Example</div><div class="gloss-example">ls /nonexistent 2>/dev/null   # hide error<br/>echo "log" >> file.txt        # append stdout to file</div></div>
+</div>
+
+<div class="gloss-item" data-level="beginner">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">pipe ( | )</span><span class="gloss-short">Send one command's output into another</span><span class="gloss-level gl-beg">beginner</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">A pipe <code>|</code> connects the stdout of one command to the stdin of the next. This is the Unix philosophy: small tools doing one thing, chained together. Pipes are created in kernel memory (no disk I/O), so they're extremely fast.</div><div class="gloss-example-label">Example</div><div class="gloss-example">ps aux | grep syncthing     # filter process list<br/>cat /etc/passwd | wc -l    # count users<br/>journalctl -u ssh | tail -20</div></div>
+</div>
+
+<!-- ═══ INTERMEDIATE ═══ -->
+<div class="gloss-item" data-level="intermediate" id="intermediate-terms">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">systemd</span><span class="gloss-short">The init system — PID 1, manages all services</span><span class="gloss-level gl-int">intermediate</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">systemd is the first process started by the kernel (PID 1) on modern Linux. It reads unit files (<code>.service</code>, <code>.timer</code>, <code>.socket</code>) and starts services in parallel, much faster than the old SysV init. It also manages logging (journald), network, timers, and mounts. If systemd dies, the whole system crashes.</div><div class="gloss-example-label">Example</div><div class="gloss-example">systemctl status syncthing@dell<br/>journalctl -u sshd -f<br/>systemd-analyze blame   # boot time per service</div></div>
+</div>
+
+<div class="gloss-item" data-level="intermediate">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">inode</span><span class="gloss-short">The internal ID of a file — stores metadata, not the name</span><span class="gloss-level gl-int">intermediate</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">Every file has an inode — a data structure storing: permissions, owner, size, timestamps, and disk block pointers. The filename is just a label pointing to an inode. A disk can run out of inodes before running out of space (millions of tiny files). Hard links are two filenames pointing to the same inode. <code>mv</code> is instant because it just changes the directory entry, not the inode.</div><div class="gloss-example-label">Example</div><div class="gloss-example">ls -i file.txt     # show inode number<br/>stat file.txt      # full inode info<br/>df -i              # inode usage per filesystem</div></div>
+</div>
+
+<div class="gloss-item" data-level="intermediate">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">symlink</span><span class="gloss-short">A shortcut that points to another file or directory</span><span class="gloss-level gl-int">intermediate</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">A symbolic link (symlink) is a special file that contains a path to another file. Unlike hard links, symlinks can cross filesystems and point to directories. If the target is deleted, the symlink becomes "dangling" (broken). <code>ls -la</code> shows symlinks with an arrow: <code>link -> /path/to/target</code>. Many system paths are symlinks (e.g., <code>/bin -> /usr/bin</code> on Ubuntu 22+).</div><div class="gloss-example-label">Example</div><div class="gloss-example">ln -s /home/dell/scripts /scripts   # create symlink<br/>ls -la /scripts                     # shows -> /home/dell/scripts</div></div>
+</div>
+
+<div class="gloss-item" data-level="intermediate">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">environment variable</span><span class="gloss-short">Named values available to all processes in the session</span><span class="gloss-level gl-int">intermediate</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">Environment variables are key=value pairs available to a process and all its children. They configure program behaviour without hardcoding values. <code>PATH</code> tells bash where to find programs. <code>HOME</code> is your home directory. <code>EDITOR</code> sets your default editor. Set them with <code>export VAR=value</code> in your shell or in <code>~/.bashrc</code> for persistence.</div><div class="gloss-example-label">Example</div><div class="gloss-example">env                    # all env variables<br/>export TOKEN=abc123    # set for this session<br/>echo $HOME             # /home/dell</div></div>
+</div>
+
+<div class="gloss-item" data-level="intermediate">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">cron / crontab</span><span class="gloss-short">Task scheduler — run commands at set times</span><span class="gloss-level gl-int">intermediate</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">cron is a daemon that runs scheduled commands. Each user has a crontab (cron table) listing their scheduled jobs. The time format is: minute hour day month weekday command. Systemd timers are the modern alternative but cron is simpler for most cases.</div><div class="gloss-example-label">Example</div><div class="gloss-example">crontab -e              # edit your crontab<br/>0 3 * * * /scripts/backup.sh   # 3am daily<br/>@reboot /scripts/start.sh      # at every boot<br/>crontab -l              # list your cron jobs</div></div>
+</div>
+
+<div class="gloss-item" data-level="intermediate">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">firewall / UFW</span><span class="gloss-short">Controls which network connections are allowed</span><span class="gloss-level gl-int">intermediate</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">A firewall filters network traffic based on rules. On Ubuntu, UFW (Uncomplicated Firewall) wraps iptables with simpler commands. Your Dell server has UFW enabled with ports 22 (SSH), 8384 (Syncthing UI via tunnel), and 22000 (Syncthing sync) open. The underlying system is <code>netfilter</code> in the kernel — iptables and nftables are ways to configure it.</div><div class="gloss-example-label">Example</div><div class="gloss-example">sudo ufw status verbose<br/>sudo ufw allow 22<br/>sudo ufw deny 80<br/>sudo ufw enable</div></div>
+</div>
+
+<div class="gloss-item" data-level="intermediate">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">SSH key pair</span><span class="gloss-short">Cryptographic keys for passwordless, secure SSH login</span><span class="gloss-level gl-int">intermediate</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">An SSH key pair consists of a <strong>private key</strong> (stays on your machine, never shared) and a <strong>public key</strong> (copied to the server's <code>~/.ssh/authorized_keys</code>). Authentication works: the server sends a challenge, you decrypt it with your private key, the server verifies with your public key. No password ever crosses the network. ed25519 is the current best algorithm.</div><div class="gloss-example-label">Example</div><div class="gloss-example">ssh-keygen -t ed25519 -C "lenovo-to-dell"<br/>ssh-copy-id dell@192.168.1.50<br/>cat ~/.ssh/authorized_keys   # on the server</div></div>
+</div>
+
+<div class="gloss-item" data-level="intermediate">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">mount / filesystem</span><span class="gloss-short">Attaching a disk/partition to a directory in the tree</span><span class="gloss-level gl-int">intermediate</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">Linux has one unified directory tree starting at <code>/</code>. "Mounting" attaches a filesystem (a formatted partition or disk) to a directory (mount point). The root filesystem (<code>/</code>) is always mounted at boot. Filesystems can be ext4, xfs, btrfs, tmpfs, etc. <code>/etc/fstab</code> defines what gets auto-mounted at boot.</div><div class="gloss-example-label">Example</div><div class="gloss-example">mount              # show all mounted filesystems<br/>sudo mount /dev/sdb1 /mnt/data<br/>cat /etc/fstab     # boot-time mounts</div></div>
+</div>
+
+<div class="gloss-item" data-level="intermediate">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">signal</span><span class="gloss-short">Asynchronous notifications sent to processes</span><span class="gloss-level gl-int">intermediate</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">Signals are inter-process notifications. SIGTERM (15) = please shut down gracefully. SIGKILL (9) = die immediately, no cleanup. SIGHUP (1) = reload config (used by nginx, sshd). SIGINT (2) = Ctrl+C. Programs can catch and handle most signals. SIGKILL and SIGSTOP cannot be caught — the kernel handles them directly.</div><div class="gloss-example-label">Example</div><div class="gloss-example">kill -15 1234    # graceful stop<br/>kill -9 1234     # force kill<br/>kill -1 1234     # reload config (SIGHUP)<br/>kill -l          # list all signals</div></div>
+</div>
+
+<div class="gloss-item" data-level="intermediate">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">journalctl</span><span class="gloss-short">systemd's centralised log viewer</span><span class="gloss-level gl-int">intermediate</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">journalctl queries the systemd journal — a binary log store that collects output from all systemd services, kernel messages, and boot logs. Unlike text files in /var/log, it supports structured querying by service, priority, time, and more. Logs persist across reboots (unless configured otherwise).</div><div class="gloss-example-label">Example</div><div class="gloss-example">journalctl -u sshd -f         # live SSH logs<br/>journalctl -p err             # only errors<br/>journalctl --since "2h ago"<br/>journalctl -b -1              # previous boot's logs</div></div>
+</div>
+
+<div class="gloss-item" data-level="intermediate">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">Netplan</span><span class="gloss-short">Ubuntu's YAML-based network configuration system</span><span class="gloss-level gl-int">intermediate</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">Netplan is Ubuntu's network configuration tool. You write YAML files in <code>/etc/netplan/</code> and run <code>sudo netplan apply</code>. It translates to either NetworkManager (desktop) or systemd-networkd (server). Used to set static IPs, configure WiFi, VLANs, etc. Your Dell's static IP config lives here.</div><div class="gloss-example-label">Example</div><div class="gloss-example">cat /etc/netplan/00-config.yaml<br/>sudo netplan apply<br/>sudo netplan try   # test with auto-revert</div></div>
+</div>
+
+<div class="gloss-item" data-level="intermediate">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">Fail2Ban</span><span class="gloss-short">Blocks IPs with too many failed login attempts</span><span class="gloss-level gl-int">intermediate</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">Fail2Ban watches log files for patterns (e.g., "Failed password" in /var/log/auth.log) and dynamically adds firewall rules to block offending IPs after a set number of failures. This prevents brute-force SSH attacks. Jails define which services to monitor and the threshold.</div><div class="gloss-example-label">Example</div><div class="gloss-example">sudo fail2ban-client status sshd<br/>sudo fail2ban-client set sshd unbanip 1.2.3.4<br/>cat /etc/fail2ban/jail.local</div></div>
+</div>
+
+<div class="gloss-item" data-level="intermediate">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">exit code</span><span class="gloss-short">A number every command returns — 0 means success</span><span class="gloss-level gl-int">intermediate</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">Every command exits with a code: 0 = success, anything else = failure. Bash scripts use this for logic: <code>command1 &amp;&amp; command2</code> runs command2 only if command1 returns 0. <code>$?</code> holds the last exit code. This is how <code>if</code> statements work in bash — they test exit codes, not booleans.</div><div class="gloss-example-label">Example</div><div class="gloss-example">ls /tmp && echo "exists"   # runs if ls succeeds<br/>false || echo "failed"    # runs if false fails<br/>echo $?                   # check last exit code</div></div>
+</div>
+
+<div class="gloss-item" data-level="intermediate">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">tmux</span><span class="gloss-short">Terminal multiplexer — multiple windows in one SSH session</span><span class="gloss-level gl-int">intermediate</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">tmux lets you run multiple terminal sessions within one SSH connection, and — crucially — keep them alive after you disconnect. Start a tmux session, run a long process, detach (Ctrl+B, D), close SSH, reconnect later, re-attach, and the process is still running. Indispensable for server work.</div><div class="gloss-example-label">Example</div><div class="gloss-example">tmux new -s server        # new named session<br/>Ctrl+B, D                 # detach<br/>tmux attach -t server     # reattach later</div></div>
+</div>
+
+<!-- ═══ ADVANCED ═══ -->
+<div class="gloss-item" data-level="advanced" id="advanced-terms">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">system call (syscall)</span><span class="gloss-short">How user programs ask the kernel to do things</span><span class="gloss-level gl-adv">advanced</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">User programs can't directly access hardware — they cross into kernel space via system calls. open(), read(), write(), fork(), exec(), socket(), connect() are all syscalls. The boundary crossing is intentionally expensive (CPU mode switch). <code>strace</code> lets you watch every syscall a process makes in real time — invaluable for debugging.</div><div class="gloss-example-label">Example</div><div class="gloss-example">strace ls 2>&1 | head -30    # watch ls's syscalls<br/>strace -p 1234               # trace running process<br/>strace -c ls                 # syscall count summary</div></div>
+</div>
+
+<div class="gloss-item" data-level="advanced">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">cgroups</span><span class="gloss-short">Control groups — limit CPU/memory/IO per process group</span><span class="gloss-level gl-adv">advanced</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">cgroups (control groups) is a kernel feature that limits, accounts for, and isolates resource usage (CPU, memory, disk I/O, network) of process groups. Docker uses cgroups to limit container resources. systemd puts every service in its own cgroup. You can see cgroup info in <code>/sys/fs/cgroup/</code> and set limits in systemd unit files.</div><div class="gloss-example-label">Example</div><div class="gloss-example">systemd-cgls            # show cgroup tree<br/>cat /proc/1234/cgroup   # cgroup of a process<br/>systemctl set-property sshd.service MemoryMax=100M</div></div>
+</div>
+
+<div class="gloss-item" data-level="advanced">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">namespace</span><span class="gloss-short">Kernel isolation for processes — the basis of containers</span><span class="gloss-level gl-adv">advanced</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">Linux namespaces isolate different system resources per process. Types: PID (own process tree), network (own network stack), mount (own filesystem view), UTS (own hostname), IPC (own shared memory), user (own UIDs). Docker combines namespaces + cgroups + overlay filesystems to create containers — lightweight "virtual machines" sharing the host kernel.</div><div class="gloss-example-label">Example</div><div class="gloss-example">lsns               # list all namespaces<br/>unshare --pid bash # run bash in new PID namespace<br/>ip netns list      # network namespaces</div></div>
+</div>
+
+<div class="gloss-item" data-level="advanced">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">iptables / nftables</span><span class="gloss-short">The kernel's packet filtering framework</span><span class="gloss-level gl-adv">advanced</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">iptables (and its successor nftables) configures the kernel's netfilter packet filtering. UFW is a wrapper around iptables. Rules are organized in chains (INPUT, OUTPUT, FORWARD) and tables (filter, nat, mangle). nftables is faster and more unified, replacing iptables in newer systems. Understanding this is essential for advanced networking and container networking.</div><div class="gloss-example-label">Example</div><div class="gloss-example">sudo iptables -L -n -v        # list all rules<br/>sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT<br/>sudo nft list ruleset         # nftables equivalent</div></div>
+</div>
+
+<div class="gloss-item" data-level="advanced">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">LVM</span><span class="gloss-short">Logical Volume Manager — flexible disk management</span><span class="gloss-level gl-adv">advanced</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">LVM adds a layer between physical disks and filesystems. Physical Volumes (PVs) → grouped into Volume Groups (VGs) → divided into Logical Volumes (LVs). Benefits: resize volumes online, span multiple disks, snapshots for backups. Ubuntu installer can set up LVM automatically. Invaluable when your disk fills up — you can add another disk and extend.</div><div class="gloss-example-label">Example</div><div class="gloss-example">pvs / vgs / lvs           # display PVs, VGs, LVs<br/>sudo lvextend -L +10G /dev/vg/lv<br/>sudo resize2fs /dev/vg/lv # extend filesystem</div></div>
+</div>
+
+<div class="gloss-item" data-level="advanced">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">ZFS</span><span class="gloss-short">Advanced filesystem with built-in RAID, compression, snapshots</span><span class="gloss-level gl-adv">advanced</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">ZFS combines the filesystem and volume manager into one. Features: copy-on-write, data integrity checksums, snapshots, clones, transparent compression, and built-in RAID (RAIDZ). Popular for NAS and server storage. On Ubuntu: <code>sudo apt install zfsutils-linux</code>. OpenZFS is the open-source fork used on Linux and FreeBSD.</div><div class="gloss-example-label">Example</div><div class="gloss-example">sudo zpool create mypool /dev/sdb<br/>sudo zfs snapshot mypool/data@backup1<br/>sudo zfs list<br/>zpool status</div></div>
+</div>
+
+<div class="gloss-item" data-level="advanced">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">sysctl</span><span class="gloss-short">Kernel parameters you can tune at runtime</span><span class="gloss-level gl-adv">advanced</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">sysctl reads and writes kernel parameters at runtime via <code>/proc/sys/</code>. Used to tune networking (TCP buffer sizes, BBR congestion control), memory (swappiness), and security (IP forwarding for routing). Persistent settings go in <code>/etc/sysctl.conf</code> or <code>/etc/sysctl.d/</code>.</div><div class="gloss-example-label">Example</div><div class="gloss-example">sysctl -a | grep swappiness<br/>sudo sysctl -w vm.swappiness=10<br/>sudo sysctl -w net.ipv4.ip_forward=1  # enable routing</div></div>
+</div>
+
+<div class="gloss-item" data-level="advanced">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">eBPF</span><span class="gloss-short">Run sandboxed programs inside the kernel for tracing and networking</span><span class="gloss-level gl-adv">advanced</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">eBPF (extended Berkeley Packet Filter) lets you run sandboxed programs inside the Linux kernel without changing kernel source or loading kernel modules. Used for ultra-low-overhead observability (bpftrace, bcc), networking (Cilium, XDP), and security (seccomp, Falco). Considered the most significant Linux innovation of the decade.</div><div class="gloss-example-label">Example</div><div class="gloss-example">sudo apt install bpftrace<br/>sudo bpftrace -e 'tracepoint:syscalls:sys_enter_openat { printf("%s\n", comm); }'<br/># prints every program opening a file</div></div>
+</div>
+
+<div class="gloss-item" data-level="advanced">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">POSIX</span><span class="gloss-short">The standard that makes shell scripts portable across Unix systems</span><span class="gloss-level gl-adv">advanced</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">POSIX (Portable Operating System Interface) is a family of IEEE standards defining what a Unix-like OS must provide. A POSIX-compliant script using <code>#!/bin/sh</code> will run on Linux, macOS, BSD, and AIX. Bash has many non-POSIX extensions (arrays, [[ ]], process substitution). When writing portable scripts, stick to POSIX sh. When writing scripts for your specific server, bash extensions are fine.</div><div class="gloss-example-label">Example</div><div class="gloss-example">#!/bin/sh    # POSIX - portable everywhere<br/>#!/bin/bash  # bash-only features OK</div></div>
+</div>
+
+<div class="gloss-item" data-level="advanced">
+  <div class="gloss-q" onclick="toggleGloss(this)"><span class="gloss-term">WireGuard</span><span class="gloss-short">Modern, simple VPN built into the Linux kernel</span><span class="gloss-level gl-adv">advanced</span><span class="gloss-arr">▼</span></div>
+  <div class="gloss-body"><div class="gloss-full">WireGuard is a modern VPN protocol built into the Linux kernel since 5.6. It's dramatically simpler than OpenVPN or IPSec (4000 lines vs 400,000). It uses state-of-the-art cryptography (Curve25519, ChaCha20, Poly1305) and is very fast. Tailscale (which you might use for remote server access) is built on top of WireGuard.</div><div class="gloss-example-label">Example</div><div class="gloss-example">sudo apt install wireguard<br/>wg genkey | tee privatekey | wg pubkey > publickey<br/>sudo wg show    # show WireGuard status</div></div>
+</div>
+
+</div><!-- end gloss-grid -->
+
+<div class="doc-footer">
+  <div>← <a href="cheatsheet.html">Cheatsheets</a></div>
+  <div>Next: <a href="my-server.html">My Server →</a></div>
+</div>
+
+</div></div>
+</div>
+
+<script src="shared/nav.js"></script>
+<script>
+let currentLevel = 'all';
+function filterGloss(q) {
+  const ql = q.toLowerCase().trim();
+  document.querySelectorAll('.gloss-item').forEach(item => {
+    const text = item.textContent.toLowerCase();
+    const lvl = item.dataset.level;
+    const matchSearch = !ql || text.includes(ql);
+    const matchLevel = currentLevel === 'all' || lvl === currentLevel;
+    item.classList.toggle('hidden', !(matchSearch && matchLevel));
+  });
+}
+function filterByLevel(btn, level) {
+  currentLevel = level;
+  document.querySelectorAll('.gloss-filter').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterGloss(document.getElementById('glossSearch').value);
+}
+</script>
+</body>
+</html>

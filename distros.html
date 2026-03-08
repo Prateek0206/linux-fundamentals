@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Distro Guide — linux.docs</title>
+<link rel="stylesheet" href="shared/style.css"/>
+<style>
+  :root{--accent:#5b9cf6;--accent2:#3b7ae0;--accent-glow:rgba(91,156,246,.10);--accent-glow2:rgba(91,156,246,.05);}
+  h3::before{background:var(--blue)}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div><nav id="topnav"></nav><div id="mobile-drawer"></div>
+<div class="page-wrap">
+<aside id="toc">
+  <div class="toc-section-label">Distros</div>
+  <a class="toc-link" href="#what-is-distro">What Is a Distro?</a>
+  <a class="toc-link" href="#ubuntu">Ubuntu</a>
+  <a class="toc-link sub" href="#ubuntu-lts">LTS vs Regular</a>
+  <a class="toc-link" href="#debian">Debian</a>
+  <a class="toc-link" href="#arch">Arch Linux</a>
+  <a class="toc-link" href="#fedora">Fedora</a>
+  <a class="toc-link" href="#comparison">Side-by-Side Comparison</a>
+  <a class="toc-link" href="#package-managers">Package Managers</a>
+  <a class="toc-link" href="#which-one">Which Should You Use?</a>
+  <a class="toc-link" href="#derivatives">Notable Derivatives</a>
+</aside>
+<div class="main-content"><div class="content-inner">
+
+<div class="page-hero">
+  <div class="page-hero-eyebrow">02 — Distro Guide</div>
+  <h1>Ubuntu, Arch, Fedora,<br/><em>Debian</em> — what's the difference?</h1>
+  <p class="page-hero-lead">A Linux distro is a curated bundle of the kernel, software, and tools. The kernel is the same across all of them. What differs is philosophy, package management, release cadence, and defaults.</p>
+</div>
+
+<div class="doc-section" id="what-is-distro">
+  <div class="sec-header"><div class="sec-num">01</div><h2>What <em>Is</em> a Distro?</h2><div class="sec-rule"></div></div>
+  <div class="learn-box">
+    <div class="learn-box-title">The car analogy</div>
+    <p>The Linux kernel is like a car engine — same core technology. A distro is like the entire car: Toyota (Ubuntu), BMW (Fedora), kit car (Arch). Same engine, totally different experience, target audience, and philosophy. You can do the same things in all of them, but the path differs.</p>
+  </div>
+  <p>Every distro provides: a Linux kernel, a package manager, a base set of tools, a release schedule, and a community. Your choice of distro determines how you install software, how often things break, how much you configure manually, and how current your software is.</p>
+</div>
+
+<div class="doc-section" id="ubuntu">
+  <div class="sec-header"><div class="sec-num">02</div><h2><em>Ubuntu</em></h2><div class="sec-rule"></div></div>
+  <div class="distro-grid">
+    <div class="distro-card ubuntu">
+      <div class="distro-icon">🟠</div>
+      <div class="distro-name">Ubuntu</div>
+      <div class="distro-tagline">The most beginner-friendly, most widely-used Linux distro. What you're running on your Dell.</div>
+      <div class="distro-tags"><span class="distro-tag">apt</span><span class="distro-tag">systemd</span><span class="distro-tag">snap</span><span class="distro-tag">LTS</span><span class="distro-tag">Canonical</span></div>
+    </div>
+  </div>
+  <p>Ubuntu is made by Canonical. It's based on Debian but adds more up-to-date software, better hardware support, and a lot more polish. The <strong>Ubuntu Server</strong> variant (what you run) has no GUI, is rock-solid, and gets 5 years of security updates on LTS releases.</p>
+
+  <h3 id="ubuntu-lts">LTS vs Regular Releases</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Type</th><th>Example</th><th>Support</th><th>Best for</th></tr></thead>
+    <tbody>
+      <tr><td><strong>LTS</strong> (Long Term Support)</td><td>22.04, 24.04</td><td>5 years (+ 10 with ESM)</td><td>Servers, production, your setup</td></tr>
+      <tr><td><strong>Regular</strong></td><td>23.10, 24.10</td><td>9 months</td><td>Desktops wanting newer features</td></tr>
+    </tbody>
+  </table></div>
+  <p>LTS releases come out every 2 years (April, even years: 22.04, 24.04). The "04" means April. Always use LTS for servers.</p>
+
+  <h3>Key Ubuntu Commands</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">Ubuntu specific</span></div><button class="copy-btn" onclick="doCopy(this,'lsb_release -a\napt list --upgradable\nsudo do-release-upgrade\nsudo apt install ubuntu-advantage-tools\npro status')">copy</button></div><div class="cb-body">
+<span class="cmd">lsb_release</span> <span class="flag">-a</span>              <span class="cmt"># Check Ubuntu version</span>
+<span class="cmd">apt list</span> <span class="flag">--upgradable</span>       <span class="cmt"># See what can be updated</span>
+<span class="cmd">sudo</span> <span class="arg">do-release-upgrade</span>   <span class="cmt"># Upgrade to next Ubuntu version</span>
+<span class="cmd">pro status</span>                 <span class="cmt"># Ubuntu Pro extended security info</span>
+  </div></div>
+</div>
+
+<div class="doc-section" id="debian">
+  <div class="sec-header"><div class="sec-num">03</div><h2><em>Debian</em></h2><div class="sec-rule"></div></div>
+  <div class="distro-grid">
+    <div class="distro-card debian">
+      <div class="distro-icon">🌀</div>
+      <div class="distro-name">Debian</div>
+      <div class="distro-tagline">The grandfather of Ubuntu. Extremely stable, community-run, uncompromisingly free software.</div>
+      <div class="distro-tags"><span class="distro-tag">apt</span><span class="distro-tag">stable</span><span class="distro-tag">conservative</span><span class="distro-tag">no snap</span></div>
+    </div>
+  </div>
+  <p>Debian prioritizes stability above all. The "stable" branch only gets security updates — software versions can be 2-3 years old. This is a feature for servers (nothing breaks!), not a bug. Ubuntu is essentially "Debian + newer software + better hardware support + Canonical polish".</p>
+
+  <h3>Debian Branches</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Branch</th><th>Codename</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><strong>stable</strong></td><td>Bookworm (12)</td><td>Very old, very stable. For servers.</td></tr>
+      <tr><td><strong>testing</strong></td><td>Trixie</td><td>Next stable — newer but may have bugs</td></tr>
+      <tr><td><strong>unstable</strong></td><td>Sid</td><td>Always latest, always changing. For developers.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout c-tip"><div class="callout-ico">💡</div><div>If Ubuntu is your daily driver (it is), you'll barely notice the difference from Debian. All the same commands, same apt, same systemd. The main difference: no snap by default, slightly older packages.</div></div>
+</div>
+
+<div class="doc-section" id="arch">
+  <div class="sec-header"><div class="sec-num">04</div><h2><em>Arch Linux</em></h2><div class="sec-rule"></div></div>
+  <div class="distro-grid">
+    <div class="distro-card arch">
+      <div class="distro-icon">🏹</div>
+      <div class="distro-name">Arch Linux</div>
+      <div class="distro-tagline">Rolling release. You build your system from scratch. "I use Arch, btw."</div>
+      <div class="distro-tags"><span class="distro-tag">pacman</span><span class="distro-tag">AUR</span><span class="distro-tag">rolling</span><span class="distro-tag">minimal</span><span class="distro-tag">DIY</span></div>
+    </div>
+  </div>
+  <p>Arch is a <strong>rolling release</strong> — you never reinstall, you just keep updating and always have the latest software. It's minimal by design: after install, you have a command line and nothing else. You build your system exactly how you want it. The <a href="https://wiki.archlinux.org" target="_blank">Arch Wiki</a> is the best Linux documentation on the internet — even Ubuntu users use it.</p>
+
+  <h3>Arch Package Manager: pacman</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">pacman</span></div><button class="copy-btn" onclick="doCopy(this,'sudo pacman -Syu\nsudo pacman -S package\nsudo pacman -R package\nsudo pacman -Ss keyword\npacman -Q\nyay -S aur-package')">copy</button></div><div class="cb-body">
+<span class="cmd">sudo pacman</span> <span class="flag">-Syu</span>        <span class="cmt"># Update everything (always do this first)</span>
+<span class="cmd">sudo pacman</span> <span class="flag">-S</span> <span class="str">package</span>  <span class="cmt"># Install a package</span>
+<span class="cmd">sudo pacman</span> <span class="flag">-R</span> <span class="str">package</span>  <span class="cmt"># Remove a package</span>
+<span class="cmd">sudo pacman</span> <span class="flag">-Ss</span> <span class="str">keyword</span> <span class="cmt"># Search</span>
+<span class="cmd">pacman</span> <span class="flag">-Q</span>               <span class="cmt"># List installed packages</span>
+<span class="cmd">yay</span> <span class="flag">-S</span> <span class="str">aur-package</span>    <span class="cmt"># AUR helper — install community packages</span>
+  </div></div>
+  <p>The <strong>AUR</strong> (Arch User Repository) is a massive community repo with practically any software you can imagine. This is Arch's killer feature — you can install almost anything with <code>yay</code>.</p>
+</div>
+
+<div class="doc-section" id="fedora">
+  <div class="sec-header"><div class="sec-num">05</div><h2><em>Fedora</em></h2><div class="sec-rule"></div></div>
+  <div class="distro-grid">
+    <div class="distro-card fedora">
+      <div class="distro-icon">🎩</div>
+      <div class="distro-name">Fedora</div>
+      <div class="distro-tagline">Red Hat's playground. Bleeding-edge, innovative, excellent for developers.</div>
+      <div class="distro-tags"><span class="distro-tag">dnf</span><span class="distro-tag">rpm</span><span class="distro-tag">SELinux</span><span class="distro-tag">Wayland</span></div>
+    </div>
+  </div>
+  <p>Fedora is where Red Hat tests new technologies before they go into RHEL (Red Hat Enterprise Linux). This means Fedora is always on the cutting edge — Wayland by default, new kernel features, systemd innovations. Releases every 6 months, supported for 13 months. Uses <code>dnf</code> and <code>.rpm</code> packages.</p>
+
+  <h3>Fedora Package Manager: dnf</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">dnf</span></div><button class="copy-btn" onclick="doCopy(this,'sudo dnf update\nsudo dnf install package\nsudo dnf remove package\ndnf search keyword\ndnf info package')">copy</button></div><div class="cb-body">
+<span class="cmd">sudo dnf update</span>            <span class="cmt"># Update all packages</span>
+<span class="cmd">sudo dnf install</span> <span class="str">package</span>  <span class="cmt"># Install</span>
+<span class="cmd">sudo dnf remove</span>  <span class="str">package</span>  <span class="cmt"># Remove</span>
+<span class="cmd">dnf search</span> <span class="str">keyword</span>        <span class="cmt"># Search</span>
+  </div></div>
+</div>
+
+<div class="doc-section" id="comparison">
+  <div class="sec-header"><div class="sec-num">06</div><h2>Side-by-Side <em>Comparison</em></h2><div class="sec-rule"></div></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Feature</th><th>Ubuntu 24.04</th><th>Debian 12</th><th>Arch</th><th>Fedora 40</th></tr></thead>
+    <tbody>
+      <tr><td>Package manager</td><td>apt</td><td>apt</td><td>pacman</td><td>dnf</td></tr>
+      <tr><td>Package format</td><td>.deb</td><td>.deb</td><td>.pkg.tar.zst</td><td>.rpm</td></tr>
+      <tr><td>Release model</td><td>Fixed (6mo / 2yr LTS)</td><td>Fixed (~2yr)</td><td>Rolling</td><td>Fixed (6mo)</td></tr>
+      <tr><td>Software freshness</td><td>Moderate</td><td>Conservative</td><td>Latest</td><td>Very fresh</td></tr>
+      <tr><td>Stability</td><td>Very stable</td><td>Rock solid</td><td>Can break</td><td>Stable-ish</td></tr>
+      <tr><td>Beginner-friendly</td><td>⭐⭐⭐⭐⭐</td><td>⭐⭐⭐</td><td>⭐</td><td>⭐⭐⭐⭐</td></tr>
+      <tr><td>Documentation</td><td>Excellent</td><td>Good</td><td>Best wiki</td><td>Good</td></tr>
+      <tr><td>Server use</td><td>✅ Best</td><td>✅ Great</td><td>⚠️ Possible</td><td>✅ Good</td></tr>
+      <tr><td>Desktop use</td><td>✅ Great</td><td>✅ Good</td><td>✅ Amazing (if set up)</td><td>✅ Best desktop</td></tr>
+      <tr><td>Based on</td><td>Debian</td><td>Independent</td><td>Independent</td><td>RHEL upstream</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<div class="doc-section" id="package-managers">
+  <div class="sec-header"><div class="sec-num">07</div><h2>Package Managers <em>Compared</em></h2><div class="sec-rule"></div></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Action</th><th>apt (Ubuntu/Debian)</th><th>pacman (Arch)</th><th>dnf (Fedora)</th></tr></thead>
+    <tbody>
+      <tr><td>Update package list</td><td><code>apt update</code></td><td><code>pacman -Sy</code></td><td><code>dnf check-update</code></td></tr>
+      <tr><td>Upgrade all</td><td><code>apt upgrade</code></td><td><code>pacman -Su</code></td><td><code>dnf update</code></td></tr>
+      <tr><td>Install</td><td><code>apt install pkg</code></td><td><code>pacman -S pkg</code></td><td><code>dnf install pkg</code></td></tr>
+      <tr><td>Remove</td><td><code>apt remove pkg</code></td><td><code>pacman -R pkg</code></td><td><code>dnf remove pkg</code></td></tr>
+      <tr><td>Remove + config</td><td><code>apt purge pkg</code></td><td><code>pacman -Rn pkg</code></td><td><code>dnf remove pkg</code></td></tr>
+      <tr><td>Search</td><td><code>apt search kw</code></td><td><code>pacman -Ss kw</code></td><td><code>dnf search kw</code></td></tr>
+      <tr><td>Info</td><td><code>apt show pkg</code></td><td><code>pacman -Si pkg</code></td><td><code>dnf info pkg</code></td></tr>
+      <tr><td>List installed</td><td><code>apt list --installed</code></td><td><code>pacman -Q</code></td><td><code>dnf list installed</code></td></tr>
+      <tr><td>Which pkg owns file</td><td><code>dpkg -S /path</code></td><td><code>pacman -Qo /path</code></td><td><code>rpm -qf /path</code></td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<div class="doc-section" id="which-one">
+  <div class="sec-header"><div class="sec-num">08</div><h2>Which Should <em>You Use?</em></h2><div class="sec-rule"></div></div>
+  <div class="faq">
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">I want a server that just works and never breaks <span class="faq-arr">▼</span></div><div class="faq-a"><strong>Ubuntu 24.04 LTS</strong> — what you already run. 5 years of support, huge community, excellent documentation. Best choice for a home server.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">I want to actually learn Linux deeply <span class="faq-arr">▼</span></div><div class="faq-a"><strong>Arch Linux</strong> — install it in a VM first. Installing Arch manually teaches you exactly how Linux works: partitioning, bootloaders, base system, init. The Arch Wiki is unmatched.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">I want a developer workstation with cutting-edge software <span class="faq-arr">▼</span></div><div class="faq-a"><strong>Fedora Workstation</strong> — always on the newest GNOME, Wayland, kernel. First to get new features. Backed by Red Hat so well-maintained.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">I want maximum stability and don't care about new software <span class="faq-arr">▼</span></div><div class="faq-a"><strong>Debian Stable</strong> — rock solid, nothing ever breaks, community-run, no commercial interests. Perfect for mission-critical servers where "boring" is good.</div></div>
+  </div>
+</div>
+
+<div class="doc-section" id="derivatives">
+  <div class="sec-header"><div class="sec-num">09</div><h2>Notable <em>Derivatives</em></h2><div class="sec-rule"></div></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Distro</th><th>Based on</th><th>What makes it special</th></tr></thead>
+    <tbody>
+      <tr><td>Linux Mint</td><td>Ubuntu</td><td>Windows-like experience, very beginner-friendly desktop</td></tr>
+      <tr><td>Pop!_OS</td><td>Ubuntu</td><td>System76's take, great for developers and Nvidia GPUs</td></tr>
+      <tr><td>Kali Linux</td><td>Debian</td><td>Penetration testing, security research tools preinstalled</td></tr>
+      <tr><td>Raspberry Pi OS</td><td>Debian</td><td>Optimized for ARM (Raspberry Pi hardware)</td></tr>
+      <tr><td>Manjaro</td><td>Arch</td><td>Arch but user-friendly — easier install, GUI tools</td></tr>
+      <tr><td>EndeavourOS</td><td>Arch</td><td>Arch with a simple installer, very close to pure Arch</td></tr>
+      <tr><td>RHEL</td><td>Fedora (upstream)</td><td>Enterprise Linux by Red Hat — paid, used by big companies</td></tr>
+      <tr><td>AlmaLinux/Rocky</td><td>RHEL</td><td>Free RHEL clones — enterprise server use</td></tr>
+      <tr><td>NixOS</td><td>Independent</td><td>Declarative config — the entire system in one config file</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<div class="doc-footer">
+  <div>← <a href="fundamentals.html">Fundamentals</a></div>
+  <div>Next: <a href="cheatsheet.html">Cheatsheets →</a></div>
+</div>
+
+</div></div>
+</div>
+<script src="shared/nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>How to Search — linux.docs</title>
+<link rel="stylesheet" href="shared/style.css"/>
+<style>
+  :root{--accent:#f0b429;--accent2:#c48b12;--accent-glow:rgba(240,180,41,.10);--accent-glow2:rgba(240,180,41,.05);}
+  h3::before{background:var(--amber)}
+  .error-anatomy{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin:16px 0;font-family:var(--mono);font-size:13px;line-height:2;}
+  .ea-line{display:flex;align-items:flex-start;gap:12px;padding:4px 0;}
+  .ea-arrow{color:var(--accent);flex-shrink:0;margin-top:2px;}
+  .ea-tag{font-size:10px;background:var(--surface2);border:1px solid var(--border2);padding:2px 8px;border-radius:3px;color:var(--text3);flex-shrink:0;min-width:80px;text-align:center;}
+  .ea-explain{font-size:12.5px;color:var(--text2);font-family:var(--sans);}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div><nav id="topnav"></nav><div id="mobile-drawer"></div>
+<div class="page-wrap">
+<aside id="toc">
+  <div class="toc-section-label">How to Search</div>
+  <a class="toc-link" href="#read-errors">Read Error Messages</a>
+  <a class="toc-link" href="#man-pages">Man Pages</a>
+  <a class="toc-link" href="#logs">Reading Logs</a>
+  <a class="toc-link" href="#journalctl">journalctl Deep Dive</a>
+  <a class="toc-link" href="#google">Googling Like a Pro</a>
+  <a class="toc-link" href="#stackoverflow">Stack Overflow</a>
+  <a class="toc-link" href="#strace">strace & ltrace</a>
+  <a class="toc-link" href="#asking">Asking Good Questions</a>
+  <a class="toc-link" href="#checklist">Debug Checklist</a>
+</aside>
+<div class="main-content"><div class="content-inner">
+
+<div class="page-hero">
+  <div class="page-hero-eyebrow">08 — How to Search</div>
+  <h1>Debug and search<br/><em>like a pro</em></h1>
+  <p class="page-hero-lead">The most important skill in Linux isn't memorising commands — it's knowing how to find answers. Reading errors, using man pages, mining logs, and Googling effectively.</p>
+</div>
+
+<div class="doc-section" id="read-errors">
+  <div class="sec-header"><div class="sec-num">01</div><h2>Read Error <em>Messages</em></h2><div class="sec-rule"></div></div>
+  <div class="learn-box">
+    <div class="learn-box-title">Most people skip the error message</div>
+    <p>The error message almost always tells you exactly what went wrong and where. Read it completely — even if it looks scary — before Googling. 80% of the time the solution is right there.</p>
+  </div>
+
+  <h3>Anatomy of a Common Error</h3>
+  <div class="error-anatomy">
+    <div style="color:var(--red);margin-bottom:12px">Job for syncthing@dell.service failed because the control process exited with error code.<br/>See "systemctl status syncthing@dell.service" and "journalctl -xe" for details.</div>
+    <div class="ea-line"><span class="ea-arrow">→</span><span class="ea-tag">what failed</span><span class="ea-explain"><code>syncthing@dell.service</code> — tells you which service to investigate</span></div>
+    <div class="ea-line"><span class="ea-arrow">→</span><span class="ea-tag">why</span><span class="ea-explain">"control process exited with error code" — it crashed on startup</span></div>
+    <div class="ea-line"><span class="ea-arrow">→</span><span class="ea-tag">next steps</span><span class="ea-explain">It literally tells you the commands to run next! Run both of them.</span></div>
+  </div>
+
+  <h3>Common Error Patterns and What They Mean</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Error message</th><th>What it actually means</th><th>First step</th></tr></thead>
+    <tbody>
+      <tr><td><code>Permission denied</code></td><td>Wrong user, need sudo, or wrong file permissions</td><td>Check <code>ls -la</code> on the file. Add <code>sudo</code>.</td></tr>
+      <tr><td><code>No such file or directory</code></td><td>Path is wrong — typo, wrong directory, file doesn't exist</td><td><code>ls /path/you/typed</code> to check. <code>find / -name filename</code></td></tr>
+      <tr><td><code>Connection refused</code></td><td>Nothing is listening on that port on that host</td><td><code>ss -tulpn | grep PORT</code> on the server</td></tr>
+      <tr><td><code>Address already in use</code></td><td>Another process is already using that port</td><td><code>ss -tulpn | grep PORT</code> to find the other process</td></tr>
+      <tr><td><code>command not found</code></td><td>Program isn't installed or not in $PATH</td><td><code>which command</code>, <code>sudo apt install command</code></td></tr>
+      <tr><td><code>syntax error near unexpected token</code></td><td>Typo in bash script (missing fi, done, quote)</td><td>Look at the line number in the error</td></tr>
+      <tr><td><code>EACCES</code></td><td>Node.js/Linux "permission denied" error code</td><td>Same as Permission denied — check ownership</td></tr>
+      <tr><td><code>Failed to start ... Unit not found</code></td><td>Service name is wrong or unit file doesn't exist</td><td><code>systemctl list-units | grep name</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Line Numbers Are Your Friends</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">errors with line numbers</span></div><button class="copy-btn" onclick="doCopy(this,'bash -n script.sh           # syntax check — shows line numbers\nbash -x script.sh           # trace execution — shows each line as it runs\nbash -x script.sh 2>&1 | head -30  # first 30 lines of trace')">copy</button></div><div class="cb-body">
+<span class="cmd">bash</span> <span class="flag">-n</span> <span class="path">script.sh</span>              <span class="cmt"># syntax check without running</span>
+<span class="cmd">bash</span> <span class="flag">-x</span> <span class="path">script.sh</span>              <span class="cmt"># trace: shows each line + command as it runs</span>
+<span class="cmd">bash</span> <span class="flag">-x</span> <span class="path">script.sh</span> <span class="op">2>&amp;1 |</span> <span class="cmd">head -30</span>  <span class="cmt"># first 30 lines of trace</span>
+  </div></div>
+</div>
+
+<div class="doc-section" id="man-pages">
+  <div class="sec-header"><div class="sec-num">02</div><h2>Man Pages — <em>Built-in Docs</em></h2><div class="sec-rule"></div></div>
+  <p>Man pages are the first place to look, not the last. They're built-in, always accurate for your version, work offline, and show you every flag a command has.</p>
+
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">using man pages effectively</span></div><button class="copy-btn" onclick="doCopy(this,'man ssh            # open SSH man page\nman 5 sshd_config  # config FILE format (section 5)\nman -k "disk usage"  # search ALL man pages for "disk usage"\nman curl | grep -A2 "\\-o"  # find -o flag in curl man page\n\n# Inside man page:\n# /keyword   → search\n# n          → next match\n# N          → previous match\n# g          → jump to start\n# G          → jump to end\n# q          → quit')">copy</button></div><div class="cb-body">
+<span class="cmd">man</span> <span class="str">ssh</span>                        <span class="cmt"># SSH man page</span>
+<span class="cmd">man</span> <span class="num">5</span> <span class="str">sshd_config</span>             <span class="cmt"># config file format (section 5)</span>
+<span class="cmd">man</span> <span class="flag">-k</span> <span class="str">"disk usage"</span>           <span class="cmt"># search all man pages</span>
+<span class="cmd">man</span> <span class="str">curl</span> <span class="op">|</span> <span class="cmd">grep</span> <span class="flag">-A2</span> <span class="str">"\-o"</span>     <span class="cmt"># find specific flag in man page</span>
+<br/>
+<span class="cmt"># Navigation inside man: /search → n next → G end → q quit</span>
+  </div></div>
+
+  <h3>Better Alternatives to man</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">quick help tools</span></div><button class="copy-btn" onclick="doCopy(this,'# tldr — practical examples (better for quick reference)\nsudo apt install tldr\ntldr ssh\ntldr tar\n\n# --help flag (almost every command has it)\nssh --help\nsystemctl --help\n\n# info pages (more detailed than man for GNU tools)\ninfo grep\n\n# type shows what a command is\ntype ls     # alias, file, or builtin?')">copy</button></div><div class="cb-body">
+<span class="cmt"># tldr — practical examples (more beginner-friendly than man)</span>
+<span class="cmd">sudo apt install</span> <span class="str">tldr</span>
+<span class="cmd">tldr ssh</span>         <span class="cmt"># common use cases with examples</span>
+<span class="cmd">tldr tar</span>
+<br/>
+<span class="cmt"># Every command has --help</span>
+<span class="cmd">ssh</span> <span class="flag">--help</span>
+<span class="cmd">systemctl</span> <span class="flag">--help</span>
+<br/>
+<span class="cmt"># type — what exactly IS this command?</span>
+<span class="cmd">type</span> <span class="str">ls</span>      <span class="cmt"># "ls is aliased to 'ls --color'"</span>
+<span class="cmd">type</span> <span class="str">cd</span>      <span class="cmt"># "cd is a shell builtin"</span>
+  </div></div>
+</div>
+
+<div class="doc-section" id="logs">
+  <div class="sec-header"><div class="sec-num">03</div><h2>Reading <em>Logs</em></h2><div class="sec-rule"></div></div>
+  <p>When something breaks, the logs almost always have the answer. The question is knowing which log to check.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Log file / command</th><th>What it contains</th></tr></thead>
+    <tbody>
+      <tr><td><code>journalctl -xe</code></td><td>Recent systemd log + explanations. First place to look.</td></tr>
+      <tr><td><code>journalctl -u service</code></td><td>All logs for one specific service</td></tr>
+      <tr><td><code>/var/log/auth.log</code></td><td>All authentication: SSH logins, sudo, su</td></tr>
+      <tr><td><code>/var/log/syslog</code></td><td>General system messages</td></tr>
+      <tr><td><code>/var/log/kern.log</code></td><td>Kernel messages (driver errors, hardware)</td></tr>
+      <tr><td><code>/var/log/apt/history.log</code></td><td>Package install/remove history</td></tr>
+      <tr><td><code>dmesg</code></td><td>Kernel ring buffer — hardware events, USB, disk</td></tr>
+      <tr><td><code>/var/log/fail2ban.log</code></td><td>Fail2Ban bans and unbans</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Essential Log Commands</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">log investigation</span></div><button class="copy-btn" onclick="doCopy(this,'# Live log following\ntail -f /var/log/syslog\njournalctl -f\njournalctl -u syncthing@dell -f\n\n# Search logs\ngrep "error" /var/log/syslog\ngrep -i "failed" /var/log/auth.log | tail -20\njournalctl -u ssh | grep "Failed password"\n\n# Time-filtered\njournalctl --since "2024-01-15 10:00" --until "2024-01-15 11:00"\njournalctl --since "1 hour ago"\n\n# Priority levels: emerg alert crit err warning notice info debug\njournalctl -p err   # only errors and above\njournalctl -p warning\n\n# Previous boot logs (when server crashed)\njournalctl -b -1    # previous boot\njournalctl -b -2    # boot before that')">copy</button></div><div class="cb-body">
+<span class="cmt"># Follow live logs</span>
+<span class="cmd">tail</span> <span class="flag">-f</span> <span class="path">/var/log/syslog</span>
+<span class="cmd">journalctl</span> <span class="flag">-f</span>
+<span class="cmd">journalctl</span> <span class="flag">-u</span> <span class="str">syncthing@dell -f</span>
+<br/>
+<span class="cmt"># Search logs</span>
+<span class="cmd">grep</span> <span class="flag">-i</span> <span class="str">"failed"</span> <span class="path">/var/log/auth.log</span> <span class="op">|</span> <span class="cmd">tail -20</span>
+<span class="cmd">journalctl</span> <span class="flag">-u</span> ssh <span class="op">|</span> <span class="cmd">grep</span> <span class="str">"Failed password"</span>
+<br/>
+<span class="cmt"># Filter by time</span>
+<span class="cmd">journalctl</span> <span class="flag">--since</span> <span class="str">"1 hour ago"</span>
+<span class="cmd">journalctl</span> <span class="flag">-b -1</span>    <span class="cmt"># previous boot (great for crash analysis)</span>
+<br/>
+<span class="cmt"># Filter by priority</span>
+<span class="cmd">journalctl</span> <span class="flag">-p err</span>   <span class="cmt"># only errors and above</span>
+  </div></div>
+</div>
+
+<div class="doc-section" id="google">
+  <div class="sec-header"><div class="sec-num">04</div><h2>Googling <em>Like a Pro</em></h2><div class="sec-rule"></div></div>
+
+  <div class="learn-box">
+    <div class="learn-box-title">The key insight</div>
+    <p>Google the <strong>specific error message</strong> (not a description of your problem). Copy the exact error text, remove parts that are specific to your machine (usernames, IPs, timestamps), and search that. Someone has had this exact error before.</p>
+  </div>
+
+  <h3>Search Formula</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Add this</th><th>Why</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>Distro name</td><td>Solutions differ per distro</td><td><code>ubuntu 24.04 syncthing</code></td></tr>
+      <tr><td>Exact error message in quotes</td><td>Find exact matches</td><td><code>"Failed to connect to bus"</code></td></tr>
+      <tr><td>Service/tool name</td><td>Narrow context</td><td><code>sshd "permission denied" ubuntu</code></td></tr>
+      <tr><td>site:stackoverflow.com</td><td>Limit to SO</td><td><code>site:stackoverflow.com bash array loop</code></td></tr>
+      <tr><td>site:wiki.archlinux.org</td><td>Best Linux wiki, works for all distros</td><td><code>site:wiki.archlinux.org systemd timer</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Best Sites for Linux Answers</h3>
+  <div class="card-grid">
+    <div class="card"><div class="card-icon">📦</div><div class="card-title">Arch Wiki</div><div class="card-desc">wiki.archlinux.org — the best Linux documentation on the internet, useful even if you don't use Arch.</div></div>
+    <div class="card"><div class="card-icon">💬</div><div class="card-title">Stack Overflow</div><div class="card-desc">For scripting, command-line, and programming. Sort by votes, not newest.</div></div>
+    <div class="card"><div class="card-icon">🍃</div><div class="card-title">Stack Exchange: Unix</div><div class="card-desc">unix.stackexchange.com — specifically for Linux and Unix questions. Often better than SO for sysadmin topics.</div></div>
+    <div class="card"><div class="card-icon">🐧</div><div class="card-title">Ubuntu Forums/Askubuntu</div><div class="card-desc">askubuntu.com — Ubuntu-specific questions. Good for your server setup.</div></div>
+    <div class="card"><div class="card-icon">📰</div><div class="card-title">man pages (online)</div><div class="card-desc">man7.org — all Linux man pages online, searchable.</div></div>
+    <div class="card"><div class="card-icon">🔧</div><div class="card-title">GitHub Issues</div><div class="card-desc">If it's a specific tool (Syncthing, Fail2Ban), search GitHub issues — developers often reply there.</div></div>
+  </div>
+
+  <h3>Don't Google This — Just Run These</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">self-answering commands</span></div><button class="copy-btn" onclick="doCopy(this,'# "why did this service fail?"\nsystemctl status service-name\njournalctl -u service-name -n 50\n\n# "which process is using port X?"\nss -tulpn | grep :PORT\n\n# "why is disk full?"\ndu -sh /* 2>/dev/null | sort -h | tail -20\nncdu /  # interactive (sudo apt install ncdu)\n\n# "what changed recently?"\nfind / -mtime -1 -type f 2>/dev/null | grep -v proc\njournalctl --since "yesterday"\n\n# "is the network ok?"\nping -c4 8.8.8.8\ntraceroute google.com\ncurl -I https://google.com')">copy</button></div><div class="cb-body">
+<span class="cmt"># "why did this service fail?"</span>
+<span class="cmd">systemctl status</span> <span class="str">service-name</span>
+<span class="cmd">journalctl</span> <span class="flag">-u</span> <span class="str">service-name -n 50</span>
+<br/>
+<span class="cmt"># "which process is using port X?"</span>
+<span class="cmd">ss</span> <span class="flag">-tulpn</span> <span class="op">|</span> <span class="cmd">grep</span> <span class="str">:PORT</span>
+<br/>
+<span class="cmt"># "why is disk full?"</span>
+<span class="cmd">du</span> <span class="flag">-sh</span> <span class="str">/*</span> <span class="op">2>/dev/null |</span> <span class="cmd">sort -h | tail -20</span>
+<br/>
+<span class="cmt"># "is the network ok?"</span>
+<span class="cmd">ping</span> <span class="flag">-c4</span> <span class="str">8.8.8.8</span>
+<span class="cmd">curl</span> <span class="flag">-I</span> <span class="str">https://google.com</span>
+  </div></div>
+</div>
+
+<div class="doc-section" id="strace">
+  <div class="sec-header"><div class="sec-num">05</div><h2>strace — <em>X-Ray Vision</em></h2><div class="sec-rule"></div></div>
+  <div class="learn-box">
+    <div class="learn-box-title">What strace does</div>
+    <p>strace prints every system call a process makes — every file it opens, every network connection it tries, every permission check. When a program silently fails and you have no idea why, <code>strace</code> shows you exactly what it was trying to do at the moment it failed.</p>
+  </div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">strace</span></div><button class="copy-btn" onclick="doCopy(this,'strace ls                         # trace ls command\nstrace -p 1234                    # attach to running process\nstrace -e openat ls               # only show file-open syscalls\nstrace -e network curl google.com # only show network syscalls\nstrace -c ls                      # summary: syscall counts + time\nstrace ls 2>&1 | grep ENOENT      # find "file not found" errors\nstrace -f bash script.sh          # trace script + all child processes')">copy</button></div><div class="cb-body">
+<span class="cmd">strace</span> <span class="str">ls</span>                          <span class="cmt"># trace ls — watch every syscall</span>
+<span class="cmd">strace</span> <span class="flag">-p</span> <span class="num">1234</span>                    <span class="cmt"># attach to running process by PID</span>
+<span class="cmd">strace</span> <span class="flag">-e</span> <span class="str">openat</span> <span class="cmd">ls</span>              <span class="cmt"># only file-open calls</span>
+<span class="cmd">strace</span> <span class="flag">-c</span> <span class="str">ls</span>                      <span class="cmt"># count + time per syscall type</span>
+<span class="cmd">strace</span> <span class="str">ls</span> <span class="op">2>&amp;1 |</span> <span class="cmd">grep</span> <span class="str">ENOENT</span>     <span class="cmt"># find "no such file" errors</span>
+<span class="cmd">strace</span> <span class="flag">-f</span> <span class="path">bash script.sh</span>          <span class="cmt"># trace script + child processes</span>
+  </div></div>
+</div>
+
+<div class="doc-section" id="asking">
+  <div class="sec-header"><div class="sec-num">06</div><h2>Asking <em>Good Questions</em></h2><div class="sec-rule"></div></div>
+  <p>When you need help (on forums, from AI, or from friends), how you ask determines how good the answer is.</p>
+  <div class="callout c-tip"><div class="callout-ico">✅</div><div><strong>Good question template:</strong> "I'm trying to do X on Ubuntu 24.04. I expected Y to happen. Instead, I got [paste exact error]. I've already tried A and B. Here's the relevant config: [paste it]."</div></div>
+  <div class="callout c-danger"><div class="callout-ico">❌</div><div><strong>Bad question:</strong> "Syncthing doesn't work, please help." — No OS, no error, no context. Impossible to help with.</div></div>
+
+  <h3>The XY Problem</h3>
+  <p>The most common bad question pattern: You have problem X. You think Y will solve it. You ask about Y without mentioning X. People answer about Y, which wasn't the real issue. Always explain what you're ultimately trying to achieve, not just what you think the solution is.</p>
+
+  <h3>Always Include This</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Include</th><th>How to get it</th></tr></thead>
+    <tbody>
+      <tr><td>OS and version</td><td><code>lsb_release -a</code></td></tr>
+      <tr><td>Exact error message</td><td>Copy-paste — don't describe it</td></tr>
+      <tr><td>What you tried</td><td>List the commands you ran</td></tr>
+      <tr><td>Relevant config</td><td>Paste the config file section</td></tr>
+      <tr><td>Service status/logs</td><td><code>systemctl status svc</code>, <code>journalctl -u svc -n 30</code></td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<div class="doc-section" id="checklist">
+  <div class="sec-header"><div class="sec-num">07</div><h2>Debug <em>Checklist</em></h2><div class="sec-rule"></div></div>
+  <p>When something breaks and you don't know where to start, run through this list in order:</p>
+  <div class="steps">
+    <div class="step"><div class="step-l"><div class="step-n">1</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">Read the exact error message</div><p>The whole thing. Don't skim. What file? What line? What permission? What was it trying to do?</p></div></div>
+    <div class="step"><div class="step-l"><div class="step-n">2</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">Check service status and recent logs</div>
+      <div class="cb" style="margin:8px 0"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">bash</span></div><button class="copy-btn" onclick="doCopy(this,'systemctl status service-name\njournalctl -u service-name -n 50 --no-pager')">copy</button></div><div class="cb-body">
+<span class="cmd">systemctl status</span> <span class="str">service-name</span>
+<span class="cmd">journalctl</span> <span class="flag">-u</span> <span class="str">service-name -n 50 --no-pager</span>
+      </div></div>
+    </div></div>
+    <div class="step"><div class="step-l"><div class="step-n">3</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">Check permissions</div><p><code>ls -la /path/to/file</code> — Does your user own it? Is it executable if it should be?</p></div></div>
+    <div class="step"><div class="step-l"><div class="step-n">4</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">Check if port/network is the issue</div><p><code>ss -tulpn | grep :PORT</code> — Is the service even listening? <code>ping server</code> — Is the host reachable?</p></div></div>
+    <div class="step"><div class="step-l"><div class="step-n">5</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">Check disk and memory</div><p><code>df -h</code> — Is disk full? <code>free -h</code> — Is RAM exhausted?</p></div></div>
+    <div class="step"><div class="step-l"><div class="step-n">6</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">Check what changed recently</div><p><code>journalctl --since "1 hour ago"</code> — Did something fail right before? Did you edit a config?</p></div></div>
+    <div class="step"><div class="step-l"><div class="step-n">7</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">Google the exact error</div><p>Add your distro name + version. Check the Arch Wiki even on Ubuntu — it's that good.</p></div></div>
+    <div class="step"><div class="step-l"><div class="step-n">8</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">Use strace if all else fails</div><p><code>strace command 2>&amp;1 | grep -E "ENOENT|EACCES|ECONNREFUSED"</code> — watch what the program actually does at the OS level.</p></div></div>
+  </div>
+</div>
+
+<div class="doc-footer">
+  <div>← <a href="scripting.html">Scripting</a></div>
+  <div><a href="index.html">← Back to Home</a></div>
+</div>
+
+</div></div>
+</div>
+<script src="shared/nav.js"></script>
+</body>
+</html>

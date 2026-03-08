@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cheatsheets — linux.docs</title>
+<link rel="stylesheet" href="shared/style.css"/>
+<style>
+  :root{--accent:#f0b429;--accent2:#c48b12;--accent-glow:rgba(240,180,41,.10);--accent-glow2:rgba(240,180,41,.05);}
+  .full-width-content { max-width: 1100px; }
+  .cs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  @media(max-width:700px){ .cs-grid{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div id="progress-bar"></div><nav id="topnav"></nav><div id="mobile-drawer"></div>
+<div class="page-wrap">
+<aside id="toc">
+  <div class="toc-section-label">Categories</div>
+  <a class="toc-link" href="#navigation">Navigation</a>
+  <a class="toc-link" href="#files">Files & Folders</a>
+  <a class="toc-link" href="#permissions">Permissions</a>
+  <a class="toc-link" href="#text">Text Processing</a>
+  <a class="toc-link" href="#processes">Processes</a>
+  <a class="toc-link" href="#networking">Networking</a>
+  <a class="toc-link" href="#systemd">Systemd</a>
+  <a class="toc-link" href="#packages">Packages (apt)</a>
+  <a class="toc-link" href="#disk">Disk & Storage</a>
+  <a class="toc-link" href="#users">Users</a>
+  <a class="toc-link" href="#git">Git</a>
+  <a class="toc-link" href="#vim">Vim</a>
+  <a class="toc-link" href="#tmux">Tmux</a>
+  <a class="toc-link" href="#ssh">SSH</a>
+  <a class="toc-link" href="#bash-tricks">Bash Tricks</a>
+</aside>
+<div class="main-content"><div class="content-inner full-width-content">
+
+<div class="page-hero">
+  <div class="page-hero-eyebrow">03 — Cheatsheets</div>
+  <h1><em>Every command</em><br/>you'll ever need</h1>
+  <p class="page-hero-lead">Searchable reference for 200+ Linux commands, organised by category. Use the search to instantly find what you need.</p>
+</div>
+
+<!-- GLOBAL SEARCH -->
+<div class="cs-search-wrap" style="margin-bottom:24px">
+  <input class="cs-search" type="text" id="globalSearch" placeholder="Search commands, e.g. 'kill process' or 'disk space'…" oninput="filterAll(this.value)"/>
+</div>
+<div id="no-results" style="display:none;padding:20px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--text3)">No commands found for that search.</div>
+
+<!-- ── NAVIGATION ── -->
+<div class="cs-category doc-section" id="navigation">
+<div class="cs-cat-title">📂 Navigation</div>
+<div class="cs-grid">
+  <div class="cs-item"><div class="cs-cmd">pwd</div><div class="cs-desc">Print current directory path</div><button class="cs-copy-small" onclick="doCopyInline(this,'pwd')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">ls</div><div class="cs-desc">List files in current directory</div><button class="cs-copy-small" onclick="doCopyInline(this,'ls')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">ls -la</div><div class="cs-desc">Detailed list including hidden files</div><button class="cs-copy-small" onclick="doCopyInline(this,'ls -la')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">ls -lhS</div><div class="cs-desc">Sort by file size, human-readable</div><button class="cs-copy-small" onclick="doCopyInline(this,'ls -lhS')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">cd /path/to/dir</div><div class="cs-desc">Change directory to absolute path</div><button class="cs-copy-small" onclick="doCopyInline(this,'cd /path/to/dir')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">cd ~</div><div class="cs-desc">Go to home directory</div><button class="cs-copy-small" onclick="doCopyInline(this,'cd ~')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">cd ..</div><div class="cs-desc">Go one directory up</div><button class="cs-copy-small" onclick="doCopyInline(this,'cd ..')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">cd -</div><div class="cs-desc">Go back to previous directory</div><button class="cs-copy-small" onclick="doCopyInline(this,'cd -')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">tree</div><div class="cs-desc">Show folder structure as tree</div><button class="cs-copy-small" onclick="doCopyInline(this,'tree')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">tree -L 2</div><div class="cs-desc">Tree, max 2 levels deep</div><button class="cs-copy-small" onclick="doCopyInline(this,'tree -L 2')">⎘</button></div>
+</div>
+</div>
+
+<!-- ── FILES ── -->
+<div class="cs-category doc-section" id="files">
+<div class="cs-cat-title">📄 Files & Folders</div>
+<div class="cs-grid">
+  <div class="cs-item"><div class="cs-cmd">touch file.txt</div><div class="cs-desc">Create empty file or update timestamp</div><button class="cs-copy-small" onclick="doCopyInline(this,'touch file.txt')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">mkdir -p dir/sub</div><div class="cs-desc">Create directory (and parents)</div><button class="cs-copy-small" onclick="doCopyInline(this,'mkdir -p dir/sub')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">cp file.txt copy.txt</div><div class="cs-desc">Copy file</div><button class="cs-copy-small" onclick="doCopyInline(this,'cp file.txt copy.txt')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">cp -r dir/ newdir/</div><div class="cs-desc">Copy entire directory recursively</div><button class="cs-copy-small" onclick="doCopyInline(this,'cp -r dir/ newdir/')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">mv file.txt newname.txt</div><div class="cs-desc">Rename file</div><button class="cs-copy-small" onclick="doCopyInline(this,'mv file.txt newname.txt')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">mv file.txt /path/</div><div class="cs-desc">Move file to another location</div><button class="cs-copy-small" onclick="doCopyInline(this,'mv file.txt /path/')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">rm file.txt</div><div class="cs-desc">Delete a file permanently</div><button class="cs-copy-small" onclick="doCopyInline(this,'rm file.txt')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">rm -rf dir/</div><div class="cs-desc">Delete folder recursively (no undo!)</div><button class="cs-copy-small" onclick="doCopyInline(this,'rm -rf dir/')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">cat file.txt</div><div class="cs-desc">Print entire file to terminal</div><button class="cs-copy-small" onclick="doCopyInline(this,'cat file.txt')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">less file.txt</div><div class="cs-desc">Scroll through file (q to quit)</div><button class="cs-copy-small" onclick="doCopyInline(this,'less file.txt')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">head -20 file.txt</div><div class="cs-desc">Show first 20 lines</div><button class="cs-copy-small" onclick="doCopyInline(this,'head -20 file.txt')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">tail -20 file.txt</div><div class="cs-desc">Show last 20 lines</div><button class="cs-copy-small" onclick="doCopyInline(this,'tail -20 file.txt')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">tail -f file.txt</div><div class="cs-desc">Follow file in real time (great for logs)</div><button class="cs-copy-small" onclick="doCopyInline(this,'tail -f file.txt')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">nano file.txt</div><div class="cs-desc">Edit file (Ctrl+O save, Ctrl+X exit)</div><button class="cs-copy-small" onclick="doCopyInline(this,'nano file.txt')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">find / -name "*.pdf"</div><div class="cs-desc">Find files by name pattern</div><button class="cs-copy-small" onclick="doCopyInline(this,'find / -name "*.pdf"')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">find . -mtime -7</div><div class="cs-desc">Files modified in last 7 days</div><button class="cs-copy-small" onclick="doCopyInline(this,'find . -mtime -7')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">find . -size +100M</div><div class="cs-desc">Files larger than 100MB</div><button class="cs-copy-small" onclick="doCopyInline(this,'find . -size +100M')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">ln -s /path target</div><div class="cs-desc">Create a symbolic (soft) link</div><button class="cs-copy-small" onclick="doCopyInline(this,'ln -s /path target')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">stat file.txt</div><div class="cs-desc">Full file info: size, inode, timestamps</div><button class="cs-copy-small" onclick="doCopyInline(this,'stat file.txt')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">file document.pdf</div><div class="cs-desc">Detect file type (not just extension)</div><button class="cs-copy-small" onclick="doCopyInline(this,'file document.pdf')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">wc -l file.txt</div><div class="cs-desc">Count lines in file</div><button class="cs-copy-small" onclick="doCopyInline(this,'wc -l file.txt')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">diff file1 file2</div><div class="cs-desc">Show differences between files</div><button class="cs-copy-small" onclick="doCopyInline(this,'diff file1 file2')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">tar -czf out.tar.gz dir/</div><div class="cs-desc">Compress folder to tarball</div><button class="cs-copy-small" onclick="doCopyInline(this,'tar -czf out.tar.gz dir/')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">tar -xzf file.tar.gz</div><div class="cs-desc">Extract tarball</div><button class="cs-copy-small" onclick="doCopyInline(this,'tar -xzf file.tar.gz')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">zip -r out.zip dir/</div><div class="cs-desc">Create zip archive</div><button class="cs-copy-small" onclick="doCopyInline(this,'zip -r out.zip dir/')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">unzip archive.zip</div><div class="cs-desc">Extract zip</div><button class="cs-copy-small" onclick="doCopyInline(this,'unzip archive.zip')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">rsync -av src/ dest/</div><div class="cs-desc">Sync directories (like cp but smarter)</div><button class="cs-copy-small" onclick="doCopyInline(this,'rsync -av src/ dest/')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">rsync -avz src/ user@host:dest/</div><div class="cs-desc">Sync over SSH to remote host</div><button class="cs-copy-small" onclick="doCopyInline(this,'rsync -avz src/ user@host:dest/')">⎘</button></div>
+</div>
+</div>
+
+<!-- ── PERMISSIONS ── -->
+<div class="cs-category doc-section" id="permissions">
+<div class="cs-cat-title">🔒 Permissions</div>
+<div class="cs-grid">
+  <div class="cs-item"><div class="cs-cmd">ls -la</div><div class="cs-desc">Show permissions for all files</div><button class="cs-copy-small" onclick="doCopyInline(this,'ls -la')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">chmod 755 script.sh</div><div class="cs-desc">rwxr-xr-x (executable script)</div><button class="cs-copy-small" onclick="doCopyInline(this,'chmod 755 script.sh')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">chmod 644 file.txt</div><div class="cs-desc">rw-r--r-- (regular file)</div><button class="cs-copy-small" onclick="doCopyInline(this,'chmod 644 file.txt')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">chmod 600 private.key</div><div class="cs-desc">rw------- (private key / secrets)</div><button class="cs-copy-small" onclick="doCopyInline(this,'chmod 600 private.key')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">chmod +x script.sh</div><div class="cs-desc">Make file executable</div><button class="cs-copy-small" onclick="doCopyInline(this,'chmod +x script.sh')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">chmod -R 755 dir/</div><div class="cs-desc">Set permissions recursively</div><button class="cs-copy-small" onclick="doCopyInline(this,'chmod -R 755 dir/')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">chown user:group file</div><div class="cs-desc">Change file owner and group</div><button class="cs-copy-small" onclick="doCopyInline(this,'chown user:group file')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">chown -R dell:dell dir/</div><div class="cs-desc">Change ownership recursively</div><button class="cs-copy-small" onclick="doCopyInline(this,'chown -R dell:dell dir/')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">umask 022</div><div class="cs-desc">Default permissions mask for new files</div><button class="cs-copy-small" onclick="doCopyInline(this,'umask 022')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">getfacl file.txt</div><div class="cs-desc">Show ACL permissions</div><button class="cs-copy-small" onclick="doCopyInline(this,'getfacl file.txt')">⎘</button></div>
+</div>
+</div>
+
+<!-- ── TEXT PROCESSING ── -->
+<div class="cs-category doc-section" id="text">
+<div class="cs-cat-title">📝 Text Processing</div>
+<div class="cs-grid">
+  <div class="cs-item"><div class="cs-cmd">grep "pattern" file</div><div class="cs-desc">Search for pattern in file</div><button class="cs-copy-small" onclick="doCopyInline(this,'grep &quot;pattern&quot; file')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">grep -r "pattern" .</div><div class="cs-desc">Recursive search in current dir</div><button class="cs-copy-small" onclick="doCopyInline(this,'grep -r &quot;pattern&quot; .')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">grep -i "pattern" file</div><div class="cs-desc">Case-insensitive search</div><button class="cs-copy-small" onclick="doCopyInline(this,'grep -i &quot;pattern&quot; file')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">grep -v "pattern" file</div><div class="cs-desc">Lines NOT matching pattern</div><button class="cs-copy-small" onclick="doCopyInline(this,'grep -v &quot;pattern&quot; file')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">grep -n "pattern" file</div><div class="cs-desc">Show line numbers in results</div><button class="cs-copy-small" onclick="doCopyInline(this,'grep -n &quot;pattern&quot; file')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sed 's/old/new/g' file</div><div class="cs-desc">Replace all occurrences of text</div><button class="cs-copy-small" onclick="doCopyInline(this,'sed &quot;s/old/new/g&quot; file')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sed -i 's/old/new/g' file</div><div class="cs-desc">Replace in-place (modifies file)</div><button class="cs-copy-small" onclick="doCopyInline(this,'sed -i &quot;s/old/new/g&quot; file')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">awk '{print $2}' file</div><div class="cs-desc">Print 2nd column of each line</div><button class="cs-copy-small" onclick="doCopyInline(this,"awk '{print $2}' file")">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">awk -F: '{print $1}' /etc/passwd</div><div class="cs-desc">Use : as delimiter, print 1st field</div><button class="cs-copy-small" onclick="doCopyInline(this,'awk -F: \'{print $1}\' /etc/passwd')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">cut -d: -f1 /etc/passwd</div><div class="cs-desc">Cut field 1 using : delimiter</div><button class="cs-copy-small" onclick="doCopyInline(this,'cut -d: -f1 /etc/passwd')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sort file.txt</div><div class="cs-desc">Sort lines alphabetically</div><button class="cs-copy-small" onclick="doCopyInline(this,'sort file.txt')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sort -n -r file.txt</div><div class="cs-desc">Sort numerically, reversed</div><button class="cs-copy-small" onclick="doCopyInline(this,'sort -n -r file.txt')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sort | uniq -c | sort -rn</div><div class="cs-desc">Count occurrences, sort by frequency</div><button class="cs-copy-small" onclick="doCopyInline(this,'sort | uniq -c | sort -rn')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">tr -d '\n' &lt; file</div><div class="cs-desc">Remove newlines from file</div><button class="cs-copy-small" onclick="doCopyInline(this,"tr -d '\\n' < file")">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">tr 'a-z' 'A-Z' &lt; file</div><div class="cs-desc">Convert to uppercase</div><button class="cs-copy-small" onclick="doCopyInline(this,"tr 'a-z' 'A-Z' < file")">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">xargs</div><div class="cs-desc">Build and execute commands from stdin</div><button class="cs-copy-small" onclick="doCopyInline(this,'cat list.txt | xargs rm')">⎘</button></div>
+</div>
+</div>
+
+<!-- ── PROCESSES ── -->
+<div class="cs-category doc-section" id="processes">
+<div class="cs-cat-title">⚙️ Processes</div>
+<div class="cs-grid">
+  <div class="cs-item"><div class="cs-cmd">htop</div><div class="cs-desc">Interactive process monitor (install first)</div><button class="cs-copy-small" onclick="doCopyInline(this,'htop')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">top</div><div class="cs-desc">Built-in process monitor</div><button class="cs-copy-small" onclick="doCopyInline(this,'top')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">ps aux</div><div class="cs-desc">All running processes</div><button class="cs-copy-small" onclick="doCopyInline(this,'ps aux')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">ps aux | grep syncthing</div><div class="cs-desc">Find specific process</div><button class="cs-copy-small" onclick="doCopyInline(this,'ps aux | grep syncthing')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">pgrep syncthing</div><div class="cs-desc">Get PID of a process by name</div><button class="cs-copy-small" onclick="doCopyInline(this,'pgrep syncthing')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">pstree</div><div class="cs-desc">Process tree showing parent-child</div><button class="cs-copy-small" onclick="doCopyInline(this,'pstree')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">kill 1234</div><div class="cs-desc">Graceful terminate (SIGTERM)</div><button class="cs-copy-small" onclick="doCopyInline(this,'kill 1234')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">kill -9 1234</div><div class="cs-desc">Force kill, no cleanup (SIGKILL)</div><button class="cs-copy-small" onclick="doCopyInline(this,'kill -9 1234')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">pkill syncthing</div><div class="cs-desc">Kill process by name</div><button class="cs-copy-small" onclick="doCopyInline(this,'pkill syncthing')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">killall syncthing</div><div class="cs-desc">Kill all instances of a program</div><button class="cs-copy-small" onclick="doCopyInline(this,'killall syncthing')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">command &</div><div class="cs-desc">Run in background</div><button class="cs-copy-small" onclick="doCopyInline(this,'command &')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">nohup command &</div><div class="cs-desc">Background + keep after logout</div><button class="cs-copy-small" onclick="doCopyInline(this,'nohup command &')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">jobs</div><div class="cs-desc">List background jobs</div><button class="cs-copy-small" onclick="doCopyInline(this,'jobs')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">fg %1</div><div class="cs-desc">Bring job 1 to foreground</div><button class="cs-copy-small" onclick="doCopyInline(this,'fg %1')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">nice -n 10 command</div><div class="cs-desc">Run with lower priority (higher nice = lower priority)</div><button class="cs-copy-small" onclick="doCopyInline(this,'nice -n 10 command')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">renice -n 5 -p 1234</div><div class="cs-desc">Change priority of running process</div><button class="cs-copy-small" onclick="doCopyInline(this,'renice -n 5 -p 1234')">⎘</button></div>
+</div>
+</div>
+
+<!-- ── NETWORKING ── -->
+<div class="cs-category doc-section" id="networking">
+<div class="cs-cat-title">🌐 Networking</div>
+<div class="cs-grid">
+  <div class="cs-item"><div class="cs-cmd">ip addr</div><div class="cs-desc">Show all network interfaces and IPs</div><button class="cs-copy-small" onclick="doCopyInline(this,'ip addr')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">ip addr show wlan0</div><div class="cs-desc">Show specific interface</div><button class="cs-copy-small" onclick="doCopyInline(this,'ip addr show wlan0')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">ip route</div><div class="cs-desc">Show routing table</div><button class="cs-copy-small" onclick="doCopyInline(this,'ip route')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">ip link</div><div class="cs-desc">Show network interfaces (MAC addresses)</div><button class="cs-copy-small" onclick="doCopyInline(this,'ip link')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">ping -c 4 8.8.8.8</div><div class="cs-desc">Ping 4 times (test connectivity)</div><button class="cs-copy-small" onclick="doCopyInline(this,'ping -c 4 8.8.8.8')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">traceroute google.com</div><div class="cs-desc">Trace network path to host</div><button class="cs-copy-small" onclick="doCopyInline(this,'traceroute google.com')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">nslookup domain.com</div><div class="cs-desc">DNS lookup</div><button class="cs-copy-small" onclick="doCopyInline(this,'nslookup domain.com')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">dig domain.com</div><div class="cs-desc">Detailed DNS lookup</div><button class="cs-copy-small" onclick="doCopyInline(this,'dig domain.com')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">curl -I https://site.com</div><div class="cs-desc">HTTP headers only</div><button class="cs-copy-small" onclick="doCopyInline(this,'curl -I https://site.com')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">curl -o file.zip URL</div><div class="cs-desc">Download file from URL</div><button class="cs-copy-small" onclick="doCopyInline(this,'curl -o file.zip URL')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">wget URL</div><div class="cs-desc">Download a file</div><button class="cs-copy-small" onclick="doCopyInline(this,'wget URL')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">ss -tulpn</div><div class="cs-desc">Show open ports and listening sockets</div><button class="cs-copy-small" onclick="doCopyInline(this,'ss -tulpn')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">ss -tulpn | grep :22</div><div class="cs-desc">Check if SSH port is open</div><button class="cs-copy-small" onclick="doCopyInline(this,'ss -tulpn | grep :22')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">netstat -tulpn</div><div class="cs-desc">Open ports (older, needs net-tools)</div><button class="cs-copy-small" onclick="doCopyInline(this,'netstat -tulpn')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">hostname -I</div><div class="cs-desc">Print all IPs of this machine</div><button class="cs-copy-small" onclick="doCopyInline(this,'hostname -I')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">iptables -L -n -v</div><div class="cs-desc">List firewall rules</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo iptables -L -n -v')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo ufw status verbose</div><div class="cs-desc">UFW firewall status and rules</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo ufw status verbose')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo ufw allow 22</div><div class="cs-desc">Open port 22 in firewall</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo ufw allow 22')">⎘</button></div>
+</div>
+</div>
+
+<!-- ── SYSTEMD ── -->
+<div class="cs-category doc-section" id="systemd">
+<div class="cs-cat-title">⚙️ Systemd & Services</div>
+<div class="cs-grid">
+  <div class="cs-item"><div class="cs-cmd">systemctl status svc</div><div class="cs-desc">Service status and recent logs</div><button class="cs-copy-small" onclick="doCopyInline(this,'systemctl status ssh')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo systemctl start svc</div><div class="cs-desc">Start a service</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo systemctl start ssh')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo systemctl stop svc</div><div class="cs-desc">Stop a service</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo systemctl stop ssh')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo systemctl restart svc</div><div class="cs-desc">Stop then start</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo systemctl restart ssh')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo systemctl reload svc</div><div class="cs-desc">Reload config without stopping</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo systemctl reload nginx')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo systemctl enable svc</div><div class="cs-desc">Start on boot automatically</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo systemctl enable ssh')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo systemctl disable svc</div><div class="cs-desc">Don't start on boot</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo systemctl disable ssh')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">systemctl is-active svc</div><div class="cs-desc">Returns active or inactive</div><button class="cs-copy-small" onclick="doCopyInline(this,'systemctl is-active syncthing@dell')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">systemctl list-units --type=service</div><div class="cs-desc">List all services</div><button class="cs-copy-small" onclick="doCopyInline(this,'systemctl list-units --type=service')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo systemctl daemon-reload</div><div class="cs-desc">Reload after editing unit files</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo systemctl daemon-reload')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">journalctl -u svc -f</div><div class="cs-desc">Live logs for a service</div><button class="cs-copy-small" onclick="doCopyInline(this,'journalctl -u ssh -f')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">journalctl -xe</div><div class="cs-desc">Recent errors with explanation</div><button class="cs-copy-small" onclick="doCopyInline(this,'journalctl -xe')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">journalctl -p err</div><div class="cs-desc">Only error-level messages</div><button class="cs-copy-small" onclick="doCopyInline(this,'journalctl -p err')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">journalctl --since "1h ago"</div><div class="cs-desc">Logs from last hour</div><button class="cs-copy-small" onclick="doCopyInline(this,'journalctl --since \"1 hour ago\"')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">journalctl --vacuum-time=7d</div><div class="cs-desc">Delete logs older than 7 days</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo journalctl --vacuum-time=7d')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">systemd-analyze blame</div><div class="cs-desc">Boot time per service</div><button class="cs-copy-small" onclick="doCopyInline(this,'systemd-analyze blame')">⎘</button></div>
+</div>
+</div>
+
+<!-- ── PACKAGES ── -->
+<div class="cs-category doc-section" id="packages">
+<div class="cs-cat-title">📦 Package Management (apt)</div>
+<div class="cs-grid">
+  <div class="cs-item"><div class="cs-cmd">sudo apt update</div><div class="cs-desc">Refresh package list (do this first!)</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo apt update')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo apt upgrade -y</div><div class="cs-desc">Install all pending updates</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo apt upgrade -y')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo apt install package</div><div class="cs-desc">Install a package</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo apt install package')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo apt remove package</div><div class="cs-desc">Remove package (keep config)</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo apt remove package')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo apt purge package</div><div class="cs-desc">Remove package + config files</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo apt purge package')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo apt autoremove</div><div class="cs-desc">Clean unused dependencies</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo apt autoremove')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">apt search keyword</div><div class="cs-desc">Search for a package</div><button class="cs-copy-small" onclick="doCopyInline(this,'apt search keyword')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">apt show package</div><div class="cs-desc">Info about a package</div><button class="cs-copy-small" onclick="doCopyInline(this,'apt show htop')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">apt list --installed</div><div class="cs-desc">List all installed packages</div><button class="cs-copy-small" onclick="doCopyInline(this,'apt list --installed')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">dpkg -l | grep package</div><div class="cs-desc">Check if package is installed</div><button class="cs-copy-small" onclick="doCopyInline(this,'dpkg -l | grep nginx')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">dpkg -S /usr/bin/ls</div><div class="cs-desc">Which package owns this file?</div><button class="cs-copy-small" onclick="doCopyInline(this,'dpkg -S /usr/bin/ls')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo apt-mark hold package</div><div class="cs-desc">Prevent package from being upgraded</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo apt-mark hold package')">⎘</button></div>
+</div>
+</div>
+
+<!-- ── DISK ── -->
+<div class="cs-category doc-section" id="disk">
+<div class="cs-cat-title">💾 Disk & Storage</div>
+<div class="cs-grid">
+  <div class="cs-item"><div class="cs-cmd">df -h</div><div class="cs-desc">Disk usage of all filesystems</div><button class="cs-copy-small" onclick="doCopyInline(this,'df -h')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">df -i</div><div class="cs-desc">Inode usage (can run out separately!)</div><button class="cs-copy-small" onclick="doCopyInline(this,'df -i')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">du -sh /home/dell</div><div class="cs-desc">Size of a specific directory</div><button class="cs-copy-small" onclick="doCopyInline(this,'du -sh /home/dell')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">du -sh /* | sort -h</div><div class="cs-desc">Size of each root dir, sorted</div><button class="cs-copy-small" onclick="doCopyInline(this,'du -sh /* 2>/dev/null | sort -h')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">ncdu /</div><div class="cs-desc">Interactive disk explorer (install: apt install ncdu)</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo ncdu /')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">lsblk</div><div class="cs-desc">Block devices and partitions</div><button class="cs-copy-small" onclick="doCopyInline(this,'lsblk')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">lsblk -f</div><div class="cs-desc">Show filesystem types</div><button class="cs-copy-small" onclick="doCopyInline(this,'lsblk -f')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo fdisk -l</div><div class="cs-desc">List all disks and partitions</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo fdisk -l')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo mount /dev/sdb1 /mnt</div><div class="cs-desc">Mount a partition</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo mount /dev/sdb1 /mnt')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo umount /mnt</div><div class="cs-desc">Unmount a partition</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo umount /mnt')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">cat /proc/mounts</div><div class="cs-desc">Currently mounted filesystems</div><button class="cs-copy-small" onclick="doCopyInline(this,'cat /proc/mounts')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo blkid</div><div class="cs-desc">Block device UUIDs and types</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo blkid')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo smartctl -a /dev/sda</div><div class="cs-desc">SMART disk health (apt install smartmontools)</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo smartctl -a /dev/sda')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">free -h</div><div class="cs-desc">RAM usage (total, used, free, cached)</div><button class="cs-copy-small" onclick="doCopyInline(this,'free -h')">⎘</button></div>
+</div>
+</div>
+
+<!-- ── USERS ── -->
+<div class="cs-category doc-section" id="users">
+<div class="cs-cat-title">👤 Users & Groups</div>
+<div class="cs-grid">
+  <div class="cs-item"><div class="cs-cmd">whoami</div><div class="cs-desc">Current username</div><button class="cs-copy-small" onclick="doCopyInline(this,'whoami')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">id</div><div class="cs-desc">UID, GID and groups</div><button class="cs-copy-small" onclick="doCopyInline(this,'id')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">groups</div><div class="cs-desc">List groups you belong to</div><button class="cs-copy-small" onclick="doCopyInline(this,'groups')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo adduser username</div><div class="cs-desc">Create new user interactively</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo adduser username')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo usermod -aG sudo user</div><div class="cs-desc">Add user to sudo group</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo usermod -aG sudo username')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo deluser username</div><div class="cs-desc">Delete a user</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo deluser username')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">passwd</div><div class="cs-desc">Change your password</div><button class="cs-copy-small" onclick="doCopyInline(this,'passwd')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo passwd username</div><div class="cs-desc">Change another user's password</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo passwd username')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">who</div><div class="cs-desc">Logged-in users right now</div><button class="cs-copy-small" onclick="doCopyInline(this,'who')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">last</div><div class="cs-desc">Recent login history</div><button class="cs-copy-small" onclick="doCopyInline(this,'last')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo -l</div><div class="cs-desc">Show what sudo commands you can run</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo -l')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">su - username</div><div class="cs-desc">Switch to another user</div><button class="cs-copy-small" onclick="doCopyInline(this,'su - username')">⎘</button></div>
+</div>
+</div>
+
+<!-- ── GIT ── -->
+<div class="cs-category doc-section" id="git">
+<div class="cs-cat-title">🌿 Git</div>
+<div class="cs-grid">
+  <div class="cs-item"><div class="cs-cmd">git init</div><div class="cs-desc">Create a new repository</div><button class="cs-copy-small" onclick="doCopyInline(this,'git init')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">git clone URL</div><div class="cs-desc">Clone a repository</div><button class="cs-copy-small" onclick="doCopyInline(this,'git clone URL')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">git status</div><div class="cs-desc">Show changed and staged files</div><button class="cs-copy-small" onclick="doCopyInline(this,'git status')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">git add .</div><div class="cs-desc">Stage all changes</div><button class="cs-copy-small" onclick="doCopyInline(this,'git add .')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">git commit -m "msg"</div><div class="cs-desc">Commit with message</div><button class="cs-copy-small" onclick="doCopyInline(this,'git commit -m "message"')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">git push origin main</div><div class="cs-desc">Push to remote</div><button class="cs-copy-small" onclick="doCopyInline(this,'git push origin main')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">git pull</div><div class="cs-desc">Fetch and merge remote changes</div><button class="cs-copy-small" onclick="doCopyInline(this,'git pull')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">git log --oneline</div><div class="cs-desc">Compact commit history</div><button class="cs-copy-small" onclick="doCopyInline(this,'git log --oneline')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">git branch -a</div><div class="cs-desc">List all branches</div><button class="cs-copy-small" onclick="doCopyInline(this,'git branch -a')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">git checkout -b new-branch</div><div class="cs-desc">Create and switch to branch</div><button class="cs-copy-small" onclick="doCopyInline(this,'git checkout -b new-branch')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">git stash</div><div class="cs-desc">Save changes temporarily</div><button class="cs-copy-small" onclick="doCopyInline(this,'git stash')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">git stash pop</div><div class="cs-desc">Restore stashed changes</div><button class="cs-copy-small" onclick="doCopyInline(this,'git stash pop')">⎘</button></div>
+</div>
+</div>
+
+<!-- ── VIM ── -->
+<div class="cs-category doc-section" id="vim">
+<div class="cs-cat-title">📝 Vim</div>
+<div class="cs-grid">
+  <div class="cs-item"><div class="cs-cmd">vim file.txt</div><div class="cs-desc">Open file in vim</div><button class="cs-copy-small" onclick="doCopyInline(this,'vim file.txt')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">i</div><div class="cs-desc">Enter INSERT mode (to type)</div><button class="cs-copy-small" onclick="doCopyInline(this,'i')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">Esc</div><div class="cs-desc">Exit INSERT mode → NORMAL mode</div><button class="cs-copy-small" onclick="doCopyInline(this,'')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">:w</div><div class="cs-desc">Save file</div><button class="cs-copy-small" onclick="doCopyInline(this,':w')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">:q</div><div class="cs-desc">Quit (fails if unsaved changes)</div><button class="cs-copy-small" onclick="doCopyInline(this,':q')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">:wq</div><div class="cs-desc">Save and quit</div><button class="cs-copy-small" onclick="doCopyInline(this,':wq')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">:q!</div><div class="cs-desc">Force quit without saving</div><button class="cs-copy-small" onclick="doCopyInline(this,':q!')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">dd</div><div class="cs-desc">Delete (cut) current line</div><button class="cs-copy-small" onclick="doCopyInline(this,'dd')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">yy</div><div class="cs-desc">Copy current line</div><button class="cs-copy-small" onclick="doCopyInline(this,'yy')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">p</div><div class="cs-desc">Paste below cursor</div><button class="cs-copy-small" onclick="doCopyInline(this,'p')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">u</div><div class="cs-desc">Undo</div><button class="cs-copy-small" onclick="doCopyInline(this,'u')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">Ctrl+r</div><div class="cs-desc">Redo</div><button class="cs-copy-small" onclick="doCopyInline(this,'')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">/pattern</div><div class="cs-desc">Search forward for pattern</div><button class="cs-copy-small" onclick="doCopyInline(this,'/pattern')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">n / N</div><div class="cs-desc">Next / previous search result</div><button class="cs-copy-small" onclick="doCopyInline(this,'n')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">:%s/old/new/g</div><div class="cs-desc">Replace all in file</div><button class="cs-copy-small" onclick="doCopyInline(this,':%s/old/new/g')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">gg / G</div><div class="cs-desc">Go to start / end of file</div><button class="cs-copy-small" onclick="doCopyInline(this,'gg')">⎘</button></div>
+</div>
+</div>
+
+<!-- ── TMUX ── -->
+<div class="cs-category doc-section" id="tmux">
+<div class="cs-cat-title">🖥 Tmux</div>
+<div class="cs-grid">
+  <div class="cs-item"><div class="cs-cmd">tmux</div><div class="cs-desc">Start new session</div><button class="cs-copy-small" onclick="doCopyInline(this,'tmux')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">tmux new -s name</div><div class="cs-desc">New named session</div><button class="cs-copy-small" onclick="doCopyInline(this,'tmux new -s myserver')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">tmux attach</div><div class="cs-desc">Attach to last session</div><button class="cs-copy-small" onclick="doCopyInline(this,'tmux attach')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">tmux attach -t name</div><div class="cs-desc">Attach to named session</div><button class="cs-copy-small" onclick="doCopyInline(this,'tmux attach -t myserver')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">tmux ls</div><div class="cs-desc">List all sessions</div><button class="cs-copy-small" onclick="doCopyInline(this,'tmux ls')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">Ctrl+B, D</div><div class="cs-desc">Detach from session (keep running)</div><button class="cs-copy-small" onclick="doCopyInline(this,'')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">Ctrl+B, C</div><div class="cs-desc">Create new window</div><button class="cs-copy-small" onclick="doCopyInline(this,'')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">Ctrl+B, N / P</div><div class="cs-desc">Next / previous window</div><button class="cs-copy-small" onclick="doCopyInline(this,'')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">Ctrl+B, %</div><div class="cs-desc">Split pane vertically</div><button class="cs-copy-small" onclick="doCopyInline(this,'')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">Ctrl+B, "</div><div class="cs-desc">Split pane horizontally</div><button class="cs-copy-small" onclick="doCopyInline(this,'')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">Ctrl+B, arrows</div><div class="cs-desc">Move between panes</div><button class="cs-copy-small" onclick="doCopyInline(this,'')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">tmux kill-session -t name</div><div class="cs-desc">Kill a session</div><button class="cs-copy-small" onclick="doCopyInline(this,'tmux kill-session -t myserver')">⎘</button></div>
+</div>
+</div>
+
+<!-- ── SSH ── -->
+<div class="cs-category doc-section" id="ssh">
+<div class="cs-cat-title">🔐 SSH</div>
+<div class="cs-grid">
+  <div class="cs-item"><div class="cs-cmd">ssh user@host</div><div class="cs-desc">Connect to remote server</div><button class="cs-copy-small" onclick="doCopyInline(this,'ssh dell@192.168.1.x')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">ssh -p 2222 user@host</div><div class="cs-desc">Connect on custom port</div><button class="cs-copy-small" onclick="doCopyInline(this,'ssh -p 2222 dell@192.168.1.x')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">ssh-keygen -t ed25519</div><div class="cs-desc">Generate SSH key pair</div><button class="cs-copy-small" onclick="doCopyInline(this,'ssh-keygen -t ed25519 -C "my-key"')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">ssh-copy-id user@host</div><div class="cs-desc">Copy public key to server</div><button class="cs-copy-small" onclick="doCopyInline(this,'ssh-copy-id dell@192.168.1.x')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">ssh -L 8384:localhost:8384 host</div><div class="cs-desc">Local port forward (tunnel)</div><button class="cs-copy-small" onclick="doCopyInline(this,'ssh -L 8384:localhost:8384 dell@192.168.1.x')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">ssh -R 9000:localhost:80 host</div><div class="cs-desc">Reverse tunnel (expose local to remote)</div><button class="cs-copy-small" onclick="doCopyInline(this,'ssh -R 9000:localhost:80 user@host')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">ssh -N -f -L 8384:localhost:8384 host</div><div class="cs-desc">Background tunnel (no shell)</div><button class="cs-copy-small" onclick="doCopyInline(this,'ssh -N -f -L 8384:localhost:8384 dell@192.168.1.x')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">scp file user@host:/path</div><div class="cs-desc">Copy file to remote</div><button class="cs-copy-small" onclick="doCopyInline(this,'scp file.txt dell@192.168.1.x:/home/dell/')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">scp user@host:/path file</div><div class="cs-desc">Copy file from remote</div><button class="cs-copy-small" onclick="doCopyInline(this,'scp dell@192.168.1.x:/home/dell/file.txt .')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">cat ~/.ssh/authorized_keys</div><div class="cs-desc">View authorized SSH public keys</div><button class="cs-copy-small" onclick="doCopyInline(this,'cat ~/.ssh/authorized_keys')">⎘</button></div>
+</div>
+</div>
+
+<!-- ── BASH TRICKS ── -->
+<div class="cs-category doc-section" id="bash-tricks">
+<div class="cs-cat-title">✨ Bash Tricks</div>
+<div class="cs-grid">
+  <div class="cs-item"><div class="cs-cmd">!!</div><div class="cs-desc">Repeat last command</div><button class="cs-copy-small" onclick="doCopyInline(this,'!!')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">sudo !!</div><div class="cs-desc">Re-run last command with sudo</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo !!')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">!grep</div><div class="cs-desc">Repeat last command starting with 'grep'</div><button class="cs-copy-small" onclick="doCopyInline(this,'!grep')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">Ctrl+R</div><div class="cs-desc">Reverse search through history</div><button class="cs-copy-small" onclick="doCopyInline(this,'')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">command1 && command2</div><div class="cs-desc">Run 2 only if 1 succeeds</div><button class="cs-copy-small" onclick="doCopyInline(this,'sudo apt update && sudo apt upgrade')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">command1 || command2</div><div class="cs-desc">Run 2 only if 1 fails</div><button class="cs-copy-small" onclick="doCopyInline(this,'ping -c1 host || echo "host down"')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">command1 ; command2</div><div class="cs-desc">Run both regardless of exit code</div><button class="cs-copy-small" onclick="doCopyInline(this,'cmd1; cmd2')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">$(command)</div><div class="cs-desc">Command substitution (use output as argument)</div><button class="cs-copy-small" onclick="doCopyInline(this,'echo "Today is $(date)"')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">echo $?</div><div class="cs-desc">Exit code of last command (0=success)</div><button class="cs-copy-small" onclick="doCopyInline(this,'echo $?')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">set -e</div><div class="cs-desc">Exit script on any error</div><button class="cs-copy-small" onclick="doCopyInline(this,'set -e')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">alias ll='ls -la'</div><div class="cs-desc">Create a shortcut</div><button class="cs-copy-small" onclick="doCopyInline(this,"alias ll='ls -la'")">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">watch -n 2 command</div><div class="cs-desc">Run command every 2 seconds</div><button class="cs-copy-small" onclick="doCopyInline(this,'watch -n 2 df -h')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">time command</div><div class="cs-desc">How long a command takes to run</div><button class="cs-copy-small" onclick="doCopyInline(this,'time ls -laR /')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">history | tail -20</div><div class="cs-desc">Last 20 commands run</div><button class="cs-copy-small" onclick="doCopyInline(this,'history | tail -20')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">echo "text" | tee file.txt</div><div class="cs-desc">Print to screen AND write to file</div><button class="cs-copy-small" onclick="doCopyInline(this,'echo "text" | tee file.txt')">⎘</button></div>
+  <div class="cs-item"><div class="cs-cmd">env | grep PATH</div><div class="cs-desc">Check environment variable</div><button class="cs-copy-small" onclick="doCopyInline(this,'env | grep PATH')">⎘</button></div>
+</div>
+</div>
+
+<div class="doc-footer">
+  <div>← <a href="distros.html">Distros</a></div>
+  <div>Next: <a href="glossary.html">Glossary →</a></div>
+</div>
+
+</div></div>
+</div>
+
+<script src="shared/nav.js"></script>
+<script>
+function filterAll(q) {
+  const ql = q.toLowerCase().trim();
+  const items = document.querySelectorAll('.cs-item');
+  let anyVisible = false;
+  items.forEach(item => {
+    const text = item.textContent.toLowerCase();
+    const show = !ql || text.includes(ql);
+    item.classList.toggle('hidden', !show);
+    if (show) anyVisible = true;
+  });
+  // show/hide categories
+  document.querySelectorAll('.cs-category').forEach(cat => {
+    const visible = cat.querySelectorAll('.cs-item:not(.hidden)').length > 0;
+    cat.style.display = (visible || !ql) ? '' : 'none';
+  });
+  document.getElementById('no-results').style.display = (anyVisible || !ql) ? 'none' : 'block';
+}
+</script>
+</body>
+</html>

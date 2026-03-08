@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>My Server — linux.docs</title>
+<link rel="stylesheet" href="shared/style.css"/>
+<style>
+  :root{--accent:#38d5e0;--accent2:#26a8b2;--accent-glow:rgba(56,213,224,.10);--accent-glow2:rgba(56,213,224,.05);}
+  h3::before{background:var(--cyan)}
+  .sec-num{border-color:rgba(56,213,224,.15);}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div><nav id="topnav"></nav><div id="mobile-drawer"></div>
+<div class="page-wrap">
+<aside id="toc">
+  <div class="toc-section-label">My Setup</div>
+  <a class="toc-link" href="#overview">Overview</a>
+  <a class="toc-link" href="#ecosystem">Service Ecosystem</a>
+  <a class="toc-link" href="#network">Network & Static IP</a>
+  <a class="toc-link" href="#ssh-setup">SSH Setup</a>
+  <a class="toc-link" href="#syncthing">Syncthing</a>
+  <a class="toc-link" href="#telegram">Telegram Bot</a>
+  <a class="toc-link" href="#firewall">Firewall (UFW)</a>
+  <a class="toc-link" href="#fail2ban">Fail2Ban</a>
+  <a class="toc-link" href="#cron">Cron Jobs</a>
+  <a class="toc-link" href="#backups">Backups</a>
+  <a class="toc-link" href="#monitoring">Monitoring</a>
+  <a class="toc-link" href="#scripts">All Scripts</a>
+</aside>
+<div class="main-content"><div class="content-inner">
+
+<div class="page-hero">
+  <div class="page-hero-eyebrow">05 — My Server</div>
+  <h1>Prateek's <em>Personal</em><br/>Server Setup</h1>
+  <p class="page-hero-lead">Complete documentation for the Dell media server + Lenovo client setup. Every service, script, config, and command you need.</p>
+  <div class="hero-pills">
+    <div class="hero-pill"><span class="hero-pill-dot" style="background:var(--green)"></span>dell@dell-media-server</div>
+    <div class="hero-pill"><span class="hero-pill-dot" style="background:var(--blue)"></span>Lenovo (client)</div>
+    <div class="hero-pill"><span class="hero-pill-dot" style="background:var(--purple)"></span>Android (Termius)</div>
+  </div>
+</div>
+
+<!-- ── OVERVIEW ── -->
+<div class="doc-section" id="overview">
+  <div class="sec-header"><div class="sec-num">01</div><h2><em>Overview</em></h2><div class="sec-rule"></div></div>
+  <div class="card-grid">
+    <div class="card"><div class="card-icon">🖥</div><div class="card-title">Dell Laptop → Server</div><div class="card-desc">Ubuntu 24.04 LTS headless. Lid closed, always on. dell@dell-media-server</div></div>
+    <div class="card"><div class="card-icon">💻</div><div class="card-title">Lenovo → Client</div><div class="card-desc">Main machine. SSH into Dell from here. Windows or Linux.</div></div>
+    <div class="card"><div class="card-icon">📱</div><div class="card-title">Android</div><div class="card-desc">Termius or JuiceSSH for mobile access. Syncthing on phone too.</div></div>
+    <div class="card"><div class="card-icon">📁</div><div class="card-title">Syncthing</div><div class="card-desc">Syncs PDFs and files across all devices. Server is hub.</div></div>
+    <div class="card"><div class="card-icon">🤖</div><div class="card-title">Telegram Bot</div><div class="card-desc">Server alerts, disk warnings, health reports to your phone.</div></div>
+    <div class="card"><div class="card-icon">🔒</div><div class="card-title">Security</div><div class="card-desc">UFW firewall + Fail2Ban + SSH key auth only.</div></div>
+  </div>
+</div>
+
+<!-- ── ECOSYSTEM ── -->
+<div class="doc-section" id="ecosystem">
+  <div class="sec-header"><div class="sec-num">02</div><h2>Service <em>Ecosystem</em></h2><div class="sec-rule"></div></div>
+  <p>Quick reference — every service on your server with its key commands:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Service</th><th>Port</th><th>Start</th><th>Stop</th><th>Status</th><th>Logs</th></tr></thead>
+    <tbody>
+      <tr><td><strong>OpenSSH</strong></td><td>22</td><td><code>sudo systemctl start ssh</code></td><td><code>sudo systemctl stop ssh</code></td><td><code>systemctl status ssh</code></td><td><code>journalctl -u ssh -f</code></td></tr>
+      <tr><td><strong>Syncthing</strong></td><td>8384 / 22000</td><td><code>sudo systemctl start syncthing@dell</code></td><td><code>sudo systemctl stop syncthing@dell</code></td><td><code>systemctl status syncthing@dell</code></td><td><code>journalctl -u syncthing@dell -f</code></td></tr>
+      <tr><td><strong>Telegram Bot</strong></td><td>—</td><td><code>sudo systemctl start telegram-bot</code></td><td><code>sudo systemctl stop telegram-bot</code></td><td><code>systemctl status telegram-bot</code></td><td><code>journalctl -u telegram-bot -f</code></td></tr>
+      <tr><td><strong>UFW</strong></td><td>—</td><td><code>sudo ufw enable</code></td><td><code>sudo ufw disable</code></td><td><code>sudo ufw status verbose</code></td><td><code>sudo ufw status</code></td></tr>
+      <tr><td><strong>Fail2Ban</strong></td><td>—</td><td><code>sudo systemctl start fail2ban</code></td><td><code>sudo systemctl stop fail2ban</code></td><td><code>sudo fail2ban-client status sshd</code></td><td><code>sudo journalctl -u fail2ban -f</code></td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- ── NETWORK ── -->
+<div class="doc-section" id="network">
+  <div class="sec-header"><div class="sec-num">03</div><h2>Network &amp; <em>Static IP</em></h2><div class="sec-rule"></div></div>
+  <div class="learn-box">
+    <div class="learn-box-title">Why set a static IP?</div>
+    <p>By default, your router gives the Dell a different IP each time it reboots (DHCP). You'd have to find the new IP every time before you can SSH. A static IP pins it to one address so you always know where to connect.</p>
+  </div>
+  <h3>Find Your Current IP</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">bash</span></div><button class="copy-btn" onclick="doCopy(this,'hostname -I\nip addr show\nip route | grep default')">copy</button></div><div class="cb-body">
+<span class="cmd">hostname</span> <span class="flag">-I</span>            <span class="cmt"># Shows all IPs — find your local one (192.168.x.x)</span>
+<span class="cmd">ip addr show</span>           <span class="cmt"># Detailed interface info</span>
+<span class="cmd">ip route</span> <span class="op">|</span> <span class="cmd">grep</span> <span class="str">default</span> <span class="cmt"># Your gateway (router's IP)</span>
+  </div></div>
+
+  <h3>Set Static IP via Netplan</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">/etc/netplan/00-config.yaml</span></div><button class="copy-btn" onclick="doCopy(this,'network:\n  version: 2\n  ethernets:\n    eth0:\n      dhcp4: false\n      addresses:\n        - 192.168.1.50/24\n      routes:\n        - to: default\n          via: 192.168.1.1\n      nameservers:\n        addresses: [8.8.8.8, 1.1.1.1]')">copy</button></div><div class="cb-body">
+<span class="kw">network</span>:<br/>
+  <span class="kw">version</span>: <span class="num">2</span><br/>
+  <span class="kw">ethernets</span>:<br/>
+    <span class="kw">eth0</span>:          <span class="cmt"># change to your interface (ip link)</span><br/>
+      <span class="kw">dhcp4</span>: <span class="str">false</span><br/>
+      <span class="kw">addresses</span>:<br/>
+        - <span class="str">192.168.1.50/24</span>   <span class="cmt"># your chosen static IP</span><br/>
+      <span class="kw">routes</span>:<br/>
+        - <span class="kw">to</span>: <span class="str">default</span><br/>
+          <span class="kw">via</span>: <span class="str">192.168.1.1</span>  <span class="cmt"># your router's IP</span><br/>
+      <span class="kw">nameservers</span>:<br/>
+        <span class="kw">addresses</span>: [<span class="str">8.8.8.8</span>, <span class="str">1.1.1.1</span>]
+  </div></div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">apply it</span></div><button class="copy-btn" onclick="doCopy(this,'sudo chmod 600 /etc/netplan/00-config.yaml\nsudo netplan try   # test — auto-reverts in 120s if you dont confirm\nsudo netplan apply # make permanent')">copy</button></div><div class="cb-body">
+<span class="cmd">sudo chmod 600</span> <span class="path">/etc/netplan/00-config.yaml</span>  <span class="cmt"># required</span>
+<span class="cmd">sudo netplan try</span>    <span class="cmt"># test — auto-reverts if you don't confirm in 120s</span>
+<span class="cmd">sudo netplan apply</span>  <span class="cmt"># make permanent</span>
+  </div></div>
+
+  <h3>SSH Config Shortcut (on Lenovo)</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">~/.ssh/config  (on Lenovo)</span></div><button class="copy-btn" onclick="doCopy(this,'Host dell\n  HostName 192.168.1.50\n  User dell\n  IdentityFile ~/.ssh/id_ed25519\n  ServerAliveInterval 60')">copy</button></div><div class="cb-body">
+<span class="kw">Host</span> <span class="str">dell</span><br/>
+  <span class="kw">HostName</span> <span class="str">192.168.1.50</span><br/>
+  <span class="kw">User</span> <span class="str">dell</span><br/>
+  <span class="kw">IdentityFile</span> <span class="path">~/.ssh/id_ed25519</span><br/>
+  <span class="kw">ServerAliveInterval</span> <span class="num">60</span>
+  </div></div>
+  <p>Now you can just type <code>ssh dell</code> instead of the full command.</p>
+</div>
+
+<!-- ── SSH SETUP ── -->
+<div class="doc-section" id="ssh-setup">
+  <div class="sec-header"><div class="sec-num">04</div><h2>SSH <em>Setup</em></h2><div class="sec-rule"></div></div>
+  <h3>Generate Keys (on Lenovo)</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">Lenovo terminal</span></div><button class="copy-btn" onclick="doCopy(this,'ssh-keygen -t ed25519 -C \"lenovo-to-dell\"\nssh-copy-id dell@192.168.1.50\nssh dell  # test it')">copy</button></div><div class="cb-body">
+<span class="cmd">ssh-keygen</span> <span class="flag">-t</span> <span class="str">ed25519</span> <span class="flag">-C</span> <span class="str">"lenovo-to-dell"</span>
+<span class="cmd">ssh-copy-id</span> <span class="str">dell@192.168.1.50</span>   <span class="cmt"># copies public key to server</span>
+<span class="cmd">ssh dell</span>                       <span class="cmt"># should log in without password</span>
+  </div></div>
+
+  <h3>Harden sshd_config (on Dell)</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">/etc/ssh/sshd_config</span></div><button class="copy-btn" onclick="doCopy(this,'PasswordAuthentication no\nPermitRootLogin no\nPubkeyAuthentication yes\nX11Forwarding no\nMaxAuthTries 3\nAllowUsers dell')">copy</button></div><div class="cb-body">
+<span class="kw">PasswordAuthentication</span> <span class="err">no</span>     <span class="cmt"># keys only — AFTER you've set up key auth</span>
+<span class="kw">PermitRootLogin</span> <span class="err">no</span>
+<span class="kw">PubkeyAuthentication</span> <span class="str">yes</span>
+<span class="kw">X11Forwarding</span> <span class="err">no</span>
+<span class="kw">MaxAuthTries</span> <span class="num">3</span>
+<span class="kw">AllowUsers</span> <span class="str">dell</span>              <span class="cmt"># only allow this user to SSH in</span>
+  </div></div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">apply</span></div><button class="copy-btn" onclick="doCopy(this,'sudo sshd -t  # test config before applying\nsudo systemctl restart ssh')">copy</button></div><div class="cb-body">
+<span class="cmd">sudo sshd</span> <span class="flag">-t</span>           <span class="cmt"># test config (no restart) — fix errors first!</span>
+<span class="cmd">sudo systemctl restart ssh</span>
+  </div></div>
+
+  <h3>Lid Close Fix (So Server Doesn't Suspend)</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">/etc/systemd/logind.conf</span></div><button class="copy-btn" onclick="doCopy(this,'# Edit /etc/systemd/logind.conf:\nHandleLidSwitch=ignore\nHandleLidSwitchExternalPower=ignore\n\n# Apply:\nsudo systemctl restart systemd-logind')">copy</button></div><div class="cb-body">
+<span class="cmt"># Edit /etc/systemd/logind.conf — find and change:</span>
+<span class="kw">HandleLidSwitch</span>=<span class="str">ignore</span>
+<span class="kw">HandleLidSwitchExternalPower</span>=<span class="str">ignore</span>
+<br/>
+<span class="cmt"># Then apply:</span>
+<span class="cmd">sudo systemctl restart</span> <span class="str">systemd-logind</span>
+  </div></div>
+</div>
+
+<!-- ── SYNCTHING ── -->
+<div class="doc-section" id="syncthing">
+  <div class="sec-header"><div class="sec-num">05</div><h2><em>Syncthing</em></h2><div class="sec-rule"></div></div>
+  <div class="svc-panel">
+    <div class="svc-panel-head">
+      <div class="svc-panel-name">📁 syncthing@dell<span class="badge b-server">port 8384 / 22000</span></div>
+      <div class="svc-status ss-on">● active</div>
+    </div>
+    <div class="svc-cmds">
+      <div class="svc-cmd"><div class="svc-cmd-label">Start</div><div class="svc-cmd-code"><span>sudo systemctl start syncthing@dell</span><button class="svc-copy" onclick="doCopyInline(this,'sudo systemctl start syncthing@dell')">⎘</button></div></div>
+      <div class="svc-cmd"><div class="svc-cmd-label">Stop</div><div class="svc-cmd-code"><span>sudo systemctl stop syncthing@dell</span><button class="svc-copy" onclick="doCopyInline(this,'sudo systemctl stop syncthing@dell')">⎘</button></div></div>
+      <div class="svc-cmd"><div class="svc-cmd-label">Restart</div><div class="svc-cmd-code"><span>sudo systemctl restart syncthing@dell</span><button class="svc-copy" onclick="doCopyInline(this,'sudo systemctl restart syncthing@dell')">⎘</button></div></div>
+      <div class="svc-cmd"><div class="svc-cmd-label">Status</div><div class="svc-cmd-code"><span>systemctl status syncthing@dell</span><button class="svc-copy" onclick="doCopyInline(this,'systemctl status syncthing@dell')">⎘</button></div></div>
+      <div class="svc-cmd"><div class="svc-cmd-label">Logs (live)</div><div class="svc-cmd-code"><span>journalctl -u syncthing@dell -f</span><button class="svc-copy" onclick="doCopyInline(this,'journalctl -u syncthing@dell -f')">⎘</button></div></div>
+      <div class="svc-cmd"><div class="svc-cmd-label">Config file</div><div class="svc-cmd-code"><span>~/.local/share/syncthing/config.xml</span><button class="svc-copy" onclick="doCopyInline(this,'~/.local/share/syncthing/config.xml')">⎘</button></div></div>
+    </div>
+  </div>
+
+  <h3>Install Syncthing</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">bash</span></div><button class="copy-btn" onclick="doCopy(this,'sudo apt install syncthing\nsudo systemctl enable syncthing@dell\nsudo systemctl start syncthing@dell')">copy</button></div><div class="cb-body">
+<span class="cmd">sudo apt install</span> <span class="str">syncthing</span>
+<span class="cmd">sudo systemctl enable</span> <span class="str">syncthing@dell</span>   <span class="cmt"># auto-start on boot</span>
+<span class="cmd">sudo systemctl start</span> <span class="str">syncthing@dell</span>
+  </div></div>
+
+  <h3>Access Syncthing UI via SSH Tunnel (from Lenovo)</h3>
+  <div class="learn-box">
+    <div class="learn-box-title">Why a tunnel?</div>
+    <p>Syncthing's web UI listens on <code>127.0.0.1:8384</code> — only accessible from the Dell itself. To open it on your Lenovo, you create an SSH tunnel that forwards your local port 8384 to the server's localhost:8384 through the encrypted SSH connection.</p>
+  </div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">Lenovo terminal</span></div><button class="copy-btn" onclick="doCopy(this,'# One-liner tunnel — then open http://localhost:8384\nssh -L 8384:localhost:8384 dell@192.168.1.50\n\n# Or background tunnel (no shell opens):\nssh -N -f -L 8384:localhost:8384 dell@192.168.1.50')">copy</button></div><div class="cb-body">
+<span class="cmt"># Opens tunnel AND a shell — visit http://localhost:8384</span>
+<span class="cmd">ssh</span> <span class="flag">-L</span> <span class="str">8384:localhost:8384</span> <span class="str">dell@192.168.1.50</span>
+<br/>
+<span class="cmt"># Background tunnel — no shell, just the tunnel</span>
+<span class="cmd">ssh</span> <span class="flag">-N -f -L</span> <span class="str">8384:localhost:8384</span> <span class="str">dell@192.168.1.50</span>
+  </div></div>
+</div>
+
+<!-- ── TELEGRAM ── -->
+<div class="doc-section" id="telegram">
+  <div class="sec-header"><div class="sec-num">06</div><h2>Telegram <em>Bot</em></h2><div class="sec-rule"></div></div>
+  <div class="svc-panel">
+    <div class="svc-panel-head">
+      <div class="svc-panel-name">🤖 telegram-bot<span class="badge b-server">polling mode</span></div>
+      <div class="svc-status ss-on">● active</div>
+    </div>
+    <div class="svc-cmds">
+      <div class="svc-cmd"><div class="svc-cmd-label">Start</div><div class="svc-cmd-code"><span>sudo systemctl start telegram-bot</span><button class="svc-copy" onclick="doCopyInline(this,'sudo systemctl start telegram-bot')">⎘</button></div></div>
+      <div class="svc-cmd"><div class="svc-cmd-label">Stop</div><div class="svc-cmd-code"><span>sudo systemctl stop telegram-bot</span><button class="svc-copy" onclick="doCopyInline(this,'sudo systemctl stop telegram-bot')">⎘</button></div></div>
+      <div class="svc-cmd"><div class="svc-cmd-label">Status</div><div class="svc-cmd-code"><span>systemctl status telegram-bot</span><button class="svc-copy" onclick="doCopyInline(this,'systemctl status telegram-bot')">⎘</button></div></div>
+      <div class="svc-cmd"><div class="svc-cmd-label">Logs</div><div class="svc-cmd-code"><span>journalctl -u telegram-bot -f</span><button class="svc-copy" onclick="doCopyInline(this,'journalctl -u telegram-bot -f')">⎘</button></div></div>
+      <div class="svc-cmd"><div class="svc-cmd-label">Send test msg</div><div class="svc-cmd-code"><span>~/scripts/notify.sh "Test"</span><button class="svc-copy" onclick="doCopyInline(this,'~/scripts/notify.sh "Hello from Dell"')">⎘</button></div></div>
+      <div class="svc-cmd"><div class="svc-cmd-label">Scripts dir</div><div class="svc-cmd-code"><span>/home/dell/scripts/</span><button class="svc-copy" onclick="doCopyInline(this,'ls /home/dell/scripts/')">⎘</button></div></div>
+    </div>
+  </div>
+
+  <h3>1. Create the Bot (BotFather)</h3>
+  <div class="steps">
+    <div class="step"><div class="step-l"><div class="step-n">1</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">Open Telegram → search @BotFather</div><p>Message it: <code>/newbot</code>. Give it a name and username (must end in "bot").</p></div></div>
+    <div class="step"><div class="step-l"><div class="step-n">2</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">Copy the API token</div><p>BotFather gives you a token like <code>7234567890:AAF...</code>. Save this.</p></div></div>
+    <div class="step"><div class="step-l"><div class="step-n">3</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">Get your Chat ID</div><p>Message your new bot anything. Then visit:<br/><code>https://api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</code><br/>Find <code>"id"</code> inside <code>"chat"</code> — that's your chat ID.</p></div></div>
+    <div class="step"><div class="step-l"><div class="step-n">4</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">Save values on the server</div>
+      <div class="cb" style="margin:8px 0"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">bash</span></div><button class="copy-btn" onclick="doCopy(this,'echo \"BOT_TOKEN=your-token-here\" >> ~/.bashrc\necho \"CHAT_ID=your-chat-id-here\" >> ~/.bashrc\nsource ~/.bashrc')">copy</button></div><div class="cb-body">
+<span class="cmd">echo</span> <span class="str">"BOT_TOKEN=7234567890:AAF..."</span> <span class="op">>></span> <span class="path">~/.bashrc</span>
+<span class="cmd">echo</span> <span class="str">"CHAT_ID=123456789"</span> <span class="op">>></span> <span class="path">~/.bashrc</span>
+<span class="cmd">source</span> <span class="path">~/.bashrc</span>
+      </div></div>
+    </div></div>
+  </div>
+
+  <h3>2. Core notify.sh Script</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">/home/dell/scripts/notify.sh</span></div><button class="copy-btn" onclick="doCopy(this,'#!/bin/bash\n# Core Telegram notification function\nBOT_TOKEN=\"${BOT_TOKEN}\"  # set in ~/.bashrc\nCHAT_ID=\"${CHAT_ID}\"      # set in ~/.bashrc\n\nMESSAGE=\"$1\"\nif [ -z \"$MESSAGE\" ]; then\n  echo \"Usage: notify.sh <message>\"\n  exit 1\nfi\n\ncurl -s -X POST \\\n  \"https://api.telegram.org/bot${BOT_TOKEN}/sendMessage\" \\\n  -d chat_id=\"${CHAT_ID}\" \\\n  -d text=\"${MESSAGE}\" \\\n  -d parse_mode=\"HTML\" > /dev/null\n\necho \"[$(date)] Sent: $MESSAGE\" >> /var/log/telegram-bot.log')">copy</button></div><div class="cb-body">
+<span class="kw">#!/bin/bash</span>
+<span class="cmt"># Core Telegram notification — call with: notify.sh "message"</span>
+<span class="var">BOT_TOKEN</span>=<span class="str">"${BOT_TOKEN}"</span>
+<span class="var">CHAT_ID</span>=<span class="str">"${CHAT_ID}"</span>
+<br/>
+<span class="var">MESSAGE</span>=<span class="str">"$1"</span>
+<span class="kw">if</span> [ <span class="flag">-z</span> <span class="str">"$MESSAGE"</span> ]; <span class="kw">then</span>
+  <span class="cmd">echo</span> <span class="str">"Usage: notify.sh &lt;message&gt;"</span>; <span class="kw">exit</span> <span class="num">1</span>
+<span class="kw">fi</span>
+<br/>
+<span class="cmd">curl</span> <span class="flag">-s -X POST</span> \<br/>
+  <span class="str">"https://api.telegram.org/bot${BOT_TOKEN}/sendMessage"</span> \<br/>
+  <span class="flag">-d</span> <span class="str">chat_id="${CHAT_ID}"</span> \<br/>
+  <span class="flag">-d</span> <span class="str">text="${MESSAGE}"</span> \<br/>
+  <span class="flag">-d</span> <span class="str">parse_mode="HTML"</span> <span class="op">></span> /dev/null
+<br/>
+<span class="cmd">echo</span> <span class="str">"[$(date)] Sent: $MESSAGE"</span> <span class="op">>></span> <span class="path">/var/log/telegram-bot.log</span>
+  </div></div>
+
+  <h3>3. Boot Notification Service</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">/etc/systemd/system/telegram-boot.service</span></div><button class="copy-btn" onclick="doCopy(this,'[Unit]\nDescription=Telegram Boot Notification\nAfter=network-online.target\nWants=network-online.target\n\n[Service]\nType=oneshot\nUser=dell\nEnvironmentFile=/home/dell/.bashrc\nExecStart=/home/dell/scripts/notify.sh \"🟢 Dell server booted!\\nTime: $(date)\\nIP: $(hostname -I)\"\n\n[Install]\nWantedBy=multi-user.target')">copy</button></div><div class="cb-body">
+<span class="kw">[Unit]</span>
+<span class="arg">Description</span>=Telegram Boot Notification
+<span class="arg">After</span>=network-online.target
+<span class="arg">Wants</span>=network-online.target
+<br/>
+<span class="kw">[Service]</span>
+<span class="arg">Type</span>=oneshot
+<span class="arg">User</span>=dell
+<span class="arg">EnvironmentFile</span>=/home/dell/.config/telegram.env
+<span class="arg">ExecStart</span>=/home/dell/scripts/notify.sh <span class="str">"🟢 Dell server is up!"</span>
+<br/>
+<span class="kw">[Install]</span>
+<span class="arg">WantedBy</span>=multi-user.target
+  </div></div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">enable it</span></div><button class="copy-btn" onclick="doCopy(this,'sudo systemctl daemon-reload\nsudo systemctl enable telegram-boot\nsudo systemctl start telegram-boot  # test it now')">copy</button></div><div class="cb-body">
+<span class="cmd">sudo systemctl daemon-reload</span>
+<span class="cmd">sudo systemctl enable</span> <span class="str">telegram-boot</span>
+<span class="cmd">sudo systemctl start</span> <span class="str">telegram-boot</span>   <span class="cmt"># sends test message</span>
+  </div></div>
+
+  <h3>4. Disk Alert Script</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">/home/dell/scripts/disk-alert.sh</span></div><button class="copy-btn" onclick="doCopy(this,'#!/bin/bash\nTHRESHOLD=80\nUSAGE=$(df / | awk \"NR==2 {print $5}\" | tr -d \"%\")\nif [ \"$USAGE\" -ge \"$THRESHOLD\" ]; then\n  /home/dell/scripts/notify.sh \"⚠️ Disk alert! Root partition at ${USAGE}%\"\nfi')">copy</button></div><div class="cb-body">
+<span class="kw">#!/bin/bash</span>
+<span class="var">THRESHOLD</span>=<span class="num">80</span>
+<span class="var">USAGE</span>=<span class="op">$(</span><span class="cmd">df</span> / <span class="op">|</span> <span class="cmd">awk</span> <span class="str">"NR==2 {print \$5}"</span> <span class="op">|</span> <span class="cmd">tr -d</span> <span class="str">"%"</span><span class="op">)</span>
+<span class="kw">if</span> [ <span class="str">"$USAGE"</span> <span class="flag">-ge</span> <span class="str">"$THRESHOLD"</span> ]; <span class="kw">then</span>
+  /home/dell/scripts/notify.sh <span class="str">"⚠️ Disk alert! Root at <b>${USAGE}%</b>"</span>
+<span class="kw">fi</span>
+  </div></div>
+
+  <h3>5. Daily Health Report</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">/home/dell/scripts/health.sh</span></div><button class="copy-btn" onclick="doCopy(this,'#!/bin/bash\nDISK=$(df -h / | awk \"NR==2 {print $5}\")\nMEM=$(free -h | awk \"/Mem:/ {print $3\"/\"$2}\")\nUPTIME=$(uptime -p)\nLOAD=$(uptime | awk -F\"load average:\" \"{print $2}\")\n/home/dell/scripts/notify.sh \"📊 Daily Health Report\n🗄 Disk: ${DISK}\n🧠 RAM: ${MEM}\n⏱ Uptime: ${UPTIME}\n📈 Load:${LOAD}\"')">copy</button></div><div class="cb-body">
+<span class="kw">#!/bin/bash</span>
+<span class="var">DISK</span>=<span class="op">$(</span><span class="cmd">df</span> <span class="flag">-h</span> / <span class="op">|</span> <span class="cmd">awk</span> <span class="str">'NR==2 {print $5}'</span><span class="op">)</span>
+<span class="var">MEM</span>=<span class="op">$(</span><span class="cmd">free</span> <span class="flag">-h</span> <span class="op">|</span> <span class="cmd">awk</span> <span class="str">'/Mem:/ {print $3"/"$2}'</span><span class="op">)</span>
+<span class="var">UPTIME</span>=<span class="op">$(</span><span class="cmd">uptime</span> <span class="flag">-p</span><span class="op">)</span>
+<span class="var">LOAD</span>=<span class="op">$(</span><span class="cmd">uptime</span> <span class="op">|</span> <span class="cmd">awk</span> <span class="flag">-F</span><span class="str">"load average:"</span> <span class="str">'{print $2}'</span><span class="op">)</span>
+<br/>
+/home/dell/scripts/notify.sh <span class="str">"📊 Daily Health
+🗄 Disk: ${DISK}
+🧠 RAM: ${MEM}
+⏱ Uptime: ${UPTIME}
+📈 Load:${LOAD}"</span>
+  </div></div>
+</div>
+
+<!-- ── FIREWALL ── -->
+<div class="doc-section" id="firewall">
+  <div class="sec-header"><div class="sec-num">07</div><h2>Firewall <em>(UFW)</em></h2><div class="sec-rule"></div></div>
+  <h3>Current Open Ports</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Port</th><th>Protocol</th><th>Service</th><th>Why it's open</th></tr></thead>
+    <tbody>
+      <tr><td><code>22</code></td><td>TCP</td><td>OpenSSH</td><td>Remote access from Lenovo &amp; Android</td></tr>
+      <tr><td><code>22000</code></td><td>TCP/UDP</td><td>Syncthing</td><td>Device sync protocol</td></tr>
+      <tr><td><code>21027</code></td><td>UDP</td><td>Syncthing discovery</td><td>Local device discovery</td></tr>
+    </tbody>
+  </table></div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">UFW commands</span></div><button class="copy-btn" onclick="doCopy(this,'sudo ufw status verbose\nsudo ufw allow 22\nsudo ufw allow 22000\nsudo ufw allow 21027/udp\nsudo ufw deny 80\nsudo ufw delete allow 80\nsudo ufw enable')">copy</button></div><div class="cb-body">
+<span class="cmd">sudo ufw status verbose</span>         <span class="cmt"># full status + rules</span>
+<span class="cmd">sudo ufw allow</span> <span class="num">22</span>              <span class="cmt"># open SSH</span>
+<span class="cmd">sudo ufw allow</span> <span class="num">22000</span>           <span class="cmt"># Syncthing</span>
+<span class="cmd">sudo ufw allow</span> <span class="num">21027</span><span class="str">/udp</span>       <span class="cmt"># Syncthing discovery</span>
+<span class="cmd">sudo ufw deny</span> <span class="num">80</span>               <span class="cmt"># block port 80</span>
+<span class="cmd">sudo ufw delete allow</span> <span class="num">80</span>       <span class="cmt"># remove a rule</span>
+<span class="cmd">sudo ufw enable</span>                <span class="cmt"># turn on firewall</span>
+  </div></div>
+  <div class="callout c-danger"><div class="callout-ico">🔴</div><div>Always <code>sudo ufw allow 22</code> BEFORE <code>sudo ufw enable</code>. If you enable UFW without allowing SSH, you'll lock yourself out. If that happens, you'll need physical access to the Dell.</div></div>
+</div>
+
+<!-- ── FAIL2BAN ── -->
+<div class="doc-section" id="fail2ban">
+  <div class="sec-header"><div class="sec-num">08</div><h2><em>Fail2Ban</em></h2><div class="sec-rule"></div></div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">Fail2Ban management</span></div><button class="copy-btn" onclick="doCopy(this,'sudo fail2ban-client status\nsudo fail2ban-client status sshd\nsudo fail2ban-client set sshd unbanip 1.2.3.4\ncat /etc/fail2ban/jail.local\njournalctl -u fail2ban -f')">copy</button></div><div class="cb-body">
+<span class="cmd">sudo fail2ban-client status</span>                    <span class="cmt"># overview</span>
+<span class="cmd">sudo fail2ban-client status sshd</span>               <span class="cmt"># SSH jail details</span>
+<span class="cmd">sudo fail2ban-client set sshd unbanip</span> <span class="num">1.2.3.4</span>  <span class="cmt"># unban an IP</span>
+<span class="cmd">cat</span> <span class="path">/etc/fail2ban/jail.local</span>                   <span class="cmt"># your config</span>
+<span class="cmd">journalctl</span> <span class="flag">-u</span> <span class="str">fail2ban</span> <span class="flag">-f</span>                      <span class="cmt"># live logs</span>
+  </div></div>
+
+  <h3>Recommended jail.local</h3>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">/etc/fail2ban/jail.local</span></div><button class="copy-btn" onclick="doCopy(this,'[DEFAULT]\nbantime  = 1h\nfindtime = 10m\nmaxretry = 5\nignoreip = 127.0.0.1/8 192.168.1.0/24\n\n[sshd]\nenabled  = true\nport     = 22\nlogpath  = /var/log/auth.log\nmaxretry = 3\nbantime  = 24h')">copy</button></div><div class="cb-body">
+<span class="kw">[DEFAULT]</span>
+<span class="arg">bantime</span>  = 1h
+<span class="arg">findtime</span> = 10m
+<span class="arg">maxretry</span> = 5
+<span class="arg">ignoreip</span> = 127.0.0.1/8 192.168.1.0/24  <span class="cmt"># never ban local network</span>
+<br/>
+<span class="kw">[sshd]</span>
+<span class="arg">enabled</span>  = true
+<span class="arg">port</span>     = 22
+<span class="arg">logpath</span>  = /var/log/auth.log
+<span class="arg">maxretry</span> = 3            <span class="cmt"># 3 fails → ban</span>
+<span class="arg">bantime</span>  = 24h          <span class="cmt"># ban for 24 hours</span>
+  </div></div>
+</div>
+
+<!-- ── CRON ── -->
+<div class="doc-section" id="cron">
+  <div class="sec-header"><div class="sec-num">09</div><h2>Cron <em>Jobs</em></h2><div class="sec-rule"></div></div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">dell's crontab</span></div><button class="copy-btn" onclick="doCopy(this,'# Edit: crontab -e\n# View: crontab -l\n\n# ┌─ min (0-59)  ┬─ hour (0-23)  ┬─ day (1-31)  ┬─ month (1-12)  ┬─ weekday (0-7)\n# │              │               │              │                │\n# Daily health report at 8am:\n0 8 * * * /home/dell/scripts/health.sh\n\n# Disk alert every 6 hours:\n0 */6 * * * /home/dell/scripts/disk-alert.sh\n\n# Daily backup at 3am:\n0 3 * * * /home/dell/scripts/backup.sh\n\n# Auto-update packages (security only) at 4am Sundays:\n0 4 * * 0 sudo apt-get -y upgrade\n\n# Clean old logs once a week:\n0 2 * * 6 find /var/log -name \"*.gz\" -mtime +30 -delete')">copy</button></div><div class="cb-body">
+<span class="cmt"># Edit: crontab -e  |  View: crontab -l</span>
+<span class="cmt"># min  hour  day  month  weekday  command</span>
+<br/>
+<span class="cmt"># Daily health report at 8am</span>
+<span class="str">0 8 * * *</span> /home/dell/scripts/health.sh
+<br/>
+<span class="cmt"># Disk alert every 6 hours</span>
+<span class="str">0 */6 * * *</span> /home/dell/scripts/disk-alert.sh
+<br/>
+<span class="cmt"># Daily backup at 3am</span>
+<span class="str">0 3 * * *</span> /home/dell/scripts/backup.sh
+<br/>
+<span class="cmt"># Auto-update packages on Sunday 4am</span>
+<span class="str">0 4 * * 0</span> <span class="cmd">sudo apt-get</span> <span class="flag">-y upgrade</span> <span class="op">>/dev/null 2>&amp;1</span>
+<br/>
+<span class="cmt"># Clean compressed logs older than 30 days, Saturday 2am</span>
+<span class="str">0 2 * * 6</span> <span class="cmd">find</span> <span class="path">/var/log</span> <span class="flag">-name</span> <span class="str">"*.gz"</span> <span class="flag">-mtime +30 -delete</span>
+  </div></div>
+</div>
+
+<!-- ── BACKUPS ── -->
+<div class="doc-section" id="backups">
+  <div class="sec-header"><div class="sec-num">10</div><h2><em>Backups</em></h2><div class="sec-rule"></div></div>
+  <div class="callout c-info"><div class="callout-ico">ℹ️</div><div><strong>3-2-1 rule:</strong> 3 copies of data, on 2 different media, 1 offsite. Even for a home server — hard drives fail. Syncthing already gives you multiple copies across devices, which is great.</div></div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">/home/dell/scripts/backup.sh</span></div><button class="copy-btn" onclick="doCopy(this,'#!/bin/bash\nset -e\nBACKUP_DIR=\"/mnt/backup\"\nSOURCE_DIRS=\"/home/dell /etc\"\nDATE=$(date +%Y-%m-%d)\nFILE=\"${BACKUP_DIR}/backup-${DATE}.tar.gz\"\n\n# Clean backups older than 14 days\nfind \"$BACKUP_DIR\" -name \"backup-*.tar.gz\" -mtime +14 -delete\n\n# Create backup\ntar -czf \"$FILE\" $SOURCE_DIRS 2>/dev/null\n\n# Notify result\nSIZE=$(du -sh \"$FILE\" | cut -f1)\n/home/dell/scripts/notify.sh \"✅ Backup done: ${DATE}\\nSize: ${SIZE}\\nFile: ${FILE}\"')">copy</button></div><div class="cb-body">
+<span class="kw">#!/bin/bash</span>
+<span class="cmd">set</span> <span class="flag">-e</span>
+<span class="var">BACKUP_DIR</span>=<span class="str">"/mnt/backup"</span>
+<span class="var">SOURCE_DIRS</span>=<span class="str">"/home/dell /etc"</span>
+<span class="var">DATE</span>=<span class="op">$(</span><span class="cmd">date</span> <span class="str">+%Y-%m-%d</span><span class="op">)</span>
+<span class="var">FILE</span>=<span class="str">"${BACKUP_DIR}/backup-${DATE}.tar.gz"</span>
+<br/>
+<span class="cmt"># Clean backups older than 14 days</span>
+<span class="cmd">find</span> <span class="str">"$BACKUP_DIR"</span> <span class="flag">-name</span> <span class="str">"backup-*.tar.gz"</span> <span class="flag">-mtime +14 -delete</span>
+<br/>
+<span class="cmt"># Create backup</span>
+<span class="cmd">tar</span> <span class="flag">-czf</span> <span class="str">"$FILE"</span> <span class="var">$SOURCE_DIRS</span> <span class="op">2>/dev/null</span>
+<br/>
+<span class="cmt"># Notify result</span>
+<span class="var">SIZE</span>=<span class="op">$(</span><span class="cmd">du</span> <span class="flag">-sh</span> <span class="str">"$FILE"</span> <span class="op">|</span> <span class="cmd">cut</span> <span class="flag">-f1</span><span class="op">)</span>
+/home/dell/scripts/notify.sh <span class="str">"✅ Backup done: ${DATE}\nSize: ${SIZE}"</span>
+  </div></div>
+</div>
+
+<!-- ── MONITORING ── -->
+<div class="doc-section" id="monitoring">
+  <div class="sec-header"><div class="sec-num">11</div><h2><em>Monitoring</em></h2><div class="sec-rule"></div></div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">quick health checks</span></div><button class="copy-btn" onclick="doCopy(this,'# System overview\nhtop\n\n# Disk\ndf -h\ndu -sh /home/dell/*\n\n# RAM\nfree -h\n\n# Uptime + load\nuptime\n\n# Who is logged in\nwho\n\n# Failed login attempts\ngrep \"Failed password\" /var/log/auth.log | tail -20\n\n# Recent errors in system logs\njournalctl -p err --since \"24h ago\"\n\n# Network connections\nss -tulpn')">copy</button></div><div class="cb-body">
+<span class="cmd">htop</span>                                                <span class="cmt"># interactive CPU/RAM/proc</span>
+<span class="cmd">df</span> <span class="flag">-h</span>                                              <span class="cmt"># disk usage</span>
+<span class="cmd">free</span> <span class="flag">-h</span>                                             <span class="cmt"># RAM usage</span>
+<span class="cmd">uptime</span>                                              <span class="cmt"># uptime + load average</span>
+<span class="cmd">who</span>                                                 <span class="cmt"># logged-in users</span>
+<span class="cmd">grep</span> <span class="str">"Failed password"</span> <span class="path">/var/log/auth.log</span> <span class="op">|</span> <span class="cmd">tail -20</span>  <span class="cmt"># failed SSH attempts</span>
+<span class="cmd">journalctl</span> <span class="flag">-p err --since "24h ago"</span>               <span class="cmt"># errors in last 24h</span>
+<span class="cmd">ss</span> <span class="flag">-tulpn</span>                                          <span class="cmt"># open ports</span>
+  </div></div>
+</div>
+
+<!-- ── ALL SCRIPTS ── -->
+<div class="doc-section" id="scripts">
+  <div class="sec-header"><div class="sec-num">12</div><h2>All <em>Scripts</em></h2><div class="sec-rule"></div></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Script</th><th>What it does</th><th>Called by</th></tr></thead>
+    <tbody>
+      <tr><td><code>~/scripts/notify.sh</code></td><td>Core Telegram message sender</td><td>All other scripts</td></tr>
+      <tr><td><code>~/scripts/health.sh</code></td><td>Daily system stats to Telegram</td><td>Cron: 8am daily</td></tr>
+      <tr><td><code>~/scripts/disk-alert.sh</code></td><td>Alert if disk > 80%</td><td>Cron: every 6h</td></tr>
+      <tr><td><code>~/scripts/backup.sh</code></td><td>tar backup + Telegram result</td><td>Cron: 3am daily</td></tr>
+      <tr><td><code>/etc/systemd/system/telegram-boot.service</code></td><td>Notify on boot</td><td>systemd boot</td></tr>
+    </tbody>
+  </table></div>
+  <div class="cb"><div class="cb-head"><div class="cb-left"><div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div><span class="cb-lang">setup all scripts</span></div><button class="copy-btn" onclick="doCopy(this,'mkdir -p ~/scripts\nchmod +x ~/scripts/*.sh\nls -la ~/scripts/')">copy</button></div><div class="cb-body">
+<span class="cmd">mkdir</span> <span class="flag">-p</span> <span class="path">~/scripts</span>
+<span class="cmd">chmod</span> <span class="flag">+x</span> <span class="path">~/scripts/*.sh</span>
+<span class="cmd">ls</span> <span class="flag">-la</span> <span class="path">~/scripts/</span>
+  </div></div>
+</div>
+
+<div class="doc-footer">
+  <div>← <a href="glossary.html">Glossary</a></div>
+  <div>Next: <a href="advanced.html">Advanced →</a></div>
+</div>
+
+</div></div>
+</div>
+<script src="shared/nav.js"></script>
+</body>
+</html>

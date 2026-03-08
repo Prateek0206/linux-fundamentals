@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>linux.docs — Master Linux From Zero to Pro</title>
+<link rel="stylesheet" href="shared/style.css"/>
+<style>
+  :root { --accent: #f0b429; --accent2: #c48b12; --accent-glow: rgba(240,180,41,.10); --accent-glow2: rgba(240,180,41,.05); }
+  body { overflow-x: hidden; }
+
+  /* ── FULL HOME LAYOUT (no sidebar) ── */
+  .home-wrap { padding-top: var(--nav-h); }
+
+  /* ── HERO ── */
+  .hero-section {
+    min-height: 92vh; display: flex; align-items: center;
+    padding: 0 80px; position: relative; overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 60% at 60% 50%, rgba(240,180,41,.04), transparent),
+      radial-gradient(ellipse 40% 80% at 100% 0%, rgba(61,220,132,.03), transparent);
+  }
+  /* subtle grid */
+  .hero-bg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 50px 50px;
+    opacity: .4;
+    mask-image: radial-gradient(ellipse 70% 70% at 40% 50%, black, transparent);
+  }
+  .hero-inner { position: relative; z-index: 1; max-width: 720px; }
+  .hero-label {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 11px; color: var(--text3);
+    letter-spacing: .12em; text-transform: uppercase; margin-bottom: 22px;
+    padding: 5px 14px; border: 1px solid var(--border2); border-radius: 20px;
+    background: var(--surface2);
+  }
+  .hero-label-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .hero-h1 {
+    font-family: var(--serif); font-size: clamp(42px, 6vw, 74px);
+    color: var(--bright); line-height: 1.04; margin-bottom: 22px;
+    font-weight: 400;
+  }
+  .hero-h1 em { font-style: italic; color: var(--accent); }
+  .hero-h1 .dim { color: var(--text2); }
+  .hero-lead { font-size: 17px; color: var(--text2); line-height: 1.8; margin-bottom: 32px; max-width: 520px; }
+  .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 48px; }
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 22px; border-radius: 7px;
+    background: var(--accent); color: #070910;
+    font-weight: 700; font-size: 14px; text-decoration: none;
+    transition: transform .15s, box-shadow .15s;
+    font-family: var(--sans);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(240,180,41,.3); text-decoration: none; }
+  .btn-secondary {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 22px; border-radius: 7px;
+    border: 1px solid var(--border2); color: var(--text);
+    font-size: 14px; text-decoration: none;
+    transition: border-color .15s, color .15s;
+  }
+  .btn-secondary:hover { border-color: var(--border3); color: var(--bright); text-decoration: none; }
+  .hero-stats { display: flex; gap: 32px; flex-wrap: wrap; }
+  .hero-stat { font-family: var(--mono); }
+  .hero-stat-num { font-size: 24px; color: var(--bright); font-weight: 700; }
+  .hero-stat-label { font-size: 10px; color: var(--text3); letter-spacing: .08em; text-transform: uppercase; }
+
+  /* ── TERMINAL PREVIEW ── */
+  .hero-terminal {
+    position: absolute; right: -20px; top: 50%; transform: translateY(-50%);
+    width: 440px; opacity: .85;
+  }
+  @media (max-width: 1100px) { .hero-terminal { display: none; } }
+
+  /* ── SECTIONS GRID ── */
+  .sections-area {
+    padding: 80px 80px 100px;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .sections-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--text3); margin-bottom: 10px;
+  }
+  .sections-title {
+    font-family: var(--serif); font-size: 36px; color: var(--bright);
+    margin-bottom: 36px; font-weight: 400;
+  }
+  .sections-title em { font-style: italic; color: var(--accent); }
+  .big-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .big-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px; text-decoration: none;
+    display: block; transition: border-color .2s, transform .2s;
+    position: relative; overflow: hidden;
+  }
+  .big-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--card-color, var(--border2));
+    transition: opacity .2s;
+  }
+  .big-card:hover { border-color: var(--border3); transform: translateY(-3px); text-decoration: none; }
+  .bc-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+  .bc-icon { font-size: 24px; }
+  .bc-num { font-family: var(--mono); font-size: 10px; color: var(--text3); padding: 3px 8px; border: 1px solid var(--border2); border-radius: 4px; }
+  .bc-title { font-family: var(--serif); font-size: 20px; color: var(--bright); margin-bottom: 6px; }
+  .bc-desc { font-size: 13px; color: var(--text3); line-height: 1.55; margin-bottom: 16px; }
+  .bc-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .bc-tag { font-family: var(--mono); font-size: 10px; padding: 2px 8px; border-radius: 3px; background: var(--surface2); border: 1px solid var(--border2); color: var(--text3); }
+
+  /* ── LEARNING PATHS ── */
+  .paths-area { padding: 80px; }
+  .paths-title { font-family: var(--serif); font-size: 30px; color: var(--bright); margin-bottom: 8px; }
+  .paths-sub { font-size: 14px; color: var(--text2); margin-bottom: 32px; }
+  .paths-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .paths-grid { grid-template-columns: 1fr; } }
+  .path-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 22px;
+  }
+  .path-level {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .path-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .path-name { font-size: 16px; font-weight: 700; color: var(--bright); margin-bottom: 14px; }
+  .path-steps { display: flex; flex-direction: column; gap: 8px; }
+  .path-step {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: var(--text2);
+    text-decoration: none; padding: 8px 10px;
+    border-radius: 6px; border: 1px solid transparent;
+    transition: all .12s;
+  }
+  .path-step:hover { color: var(--bright); background: var(--surface2); border-color: var(--border); text-decoration: none; }
+  .path-step-num { font-family: var(--mono); font-size: 10px; color: var(--text3); width: 18px; flex-shrink: 0; text-align: right; }
+  .path-step-arrow { font-size: 10px; color: var(--text3); margin-left: auto; }
+
+  /* ── YOUR SETUP BANNER ── */
+  .setup-banner {
+    margin: 0 80px 80px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 32px 36px;
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    flex-wrap: wrap;
+  }
+  .setup-banner-left h3 { margin: 0 0 6px; font-size: 18px; color: var(--bright); }
+  .setup-banner-left h3::before { display: none; }
+  .setup-banner-left p { margin: 0; color: var(--text2); font-size: 14px; }
+  .setup-devices { display: flex; gap: 12px; flex-wrap: wrap; }
+  .device-pill {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 16px; border-radius: 8px;
+    background: var(--bg2); border: 1px solid var(--border2);
+    font-family: var(--mono); font-size: 12px;
+  }
+  .device-icon { font-size: 16px; }
+  .device-name { color: var(--bright); font-weight: 600; }
+  .device-sub { color: var(--text3); font-size: 10px; margin-top: 1px; }
+  .device-status { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+  @media (max-width: 900px) {
+    .hero-section { padding: 60px 24px; min-height: auto; padding-top: 80px; }
+    .sections-area, .paths-area { padding: 48px 24px; }
+    .setup-banner { margin: 0 24px 48px; }
+  }
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<nav id="topnav"></nav>
+<div id="mobile-drawer"></div>
+
+<div class="home-wrap">
+
+  <!-- ── HERO ── -->
+  <section class="hero-section">
+    <div class="hero-bg"></div>
+    <div class="hero-inner">
+      <div class="hero-label"><span class="hero-label-dot"></span>The only Linux reference you'll ever need</div>
+      <h1 class="hero-h1">
+        Master <em>Linux</em><br/>
+        <span class="dim">from zero to</span><br/>
+        production.
+      </h1>
+      <p class="hero-lead">Complete documentation for Linux — fundamentals, distro guides, command cheatsheets, scripting, advanced internals, and your personal Dell server setup. Built by Prateek, for Prateek (and everyone else).</p>
+      <div class="hero-cta">
+        <a href="fundamentals.html" class="btn-primary">Start learning →</a>
+        <a href="my-server.html" class="btn-secondary">🖥 My Server Setup</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="hero-stat-num">9</div><div class="hero-stat-label">Sections</div></div>
+        <div class="hero-stat"><div class="hero-stat-num">200+</div><div class="hero-stat-label">Commands</div></div>
+        <div class="hero-stat"><div class="hero-stat-num">60+</div><div class="hero-stat-label">Glossary Terms</div></div>
+        <div class="hero-stat"><div class="hero-stat-num">∞</div><div class="hero-stat-label">Things to learn</div></div>
+      </div>
+    </div>
+
+    <!-- Terminal preview -->
+    <div class="hero-terminal">
+      <div class="term" style="margin:0;opacity:.9">
+        <div class="term-bar">
+          <div class="cb-dots"><div class="cb-d" style="background:#ff5f57"></div><div class="cb-d" style="background:#febc2e"></div><div class="cb-d" style="background:#28c840"></div></div>
+          <div class="term-title">dell@dell-media-server</div>
+        </div>
+        <div class="term-body" style="font-size:12px;line-height:1.8">
+<span class="prompt">dell@dell-media-server:~$ </span><span class="cmd">systemctl</span> <span class="arg">status</span> <span class="str">syncthing@dell</span><br/>
+<span style="color:var(--green)">● syncthing@dell.service - Syncthing</span><br/>
+<span class="text2">   Loaded: loaded</span><br/>
+<span style="color:var(--green)">   Active: active (running)</span><br/>
+<br/>
+<span class="prompt">dell@dell-media-server:~$ </span><span class="cmd">df</span> <span class="flag">-h</span><br/>
+<span class="arg">Filesystem      Size  Used Avail Use%</span><br/>
+<span class="str">/dev/sda1       234G   48G  174G  22%</span><br/>
+<br/>
+<span class="prompt">dell@dell-media-server:~$ </span><span class="cmd">uptime</span><br/>
+<span class="text">14:32  up 12 days, 3:14,  1 user,  load average: 0.08</span><br/>
+<br/>
+<span class="prompt">dell@dell-media-server:~$ </span><span style="animation: blink 1s step-end infinite">█</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTIONS GRID ── -->
+  <section class="sections-area">
+    <div class="sections-label">// everything in one place</div>
+    <h2 class="sections-title">Pick your <em>section</em></h2>
+    <div class="big-card-grid">
+      <a href="fundamentals.html" class="big-card" style="--card-color:var(--green)">
+        <div class="bc-top"><div class="bc-icon">🐧</div><div class="bc-num">01</div></div>
+        <div class="bc-title">Linux Fundamentals</div>
+        <div class="bc-desc">How Linux actually works — kernel, boot process, filesystem hierarchy, processes, signals, pipes, and the shell.</div>
+        <div class="bc-tags"><span class="bc-tag">beginner</span><span class="bc-tag">kernel</span><span class="bc-tag">filesystem</span><span class="bc-tag">processes</span></div>
+      </a>
+      <a href="distros.html" class="big-card" style="--card-color:var(--blue)">
+        <div class="bc-top"><div class="bc-icon">📦</div><div class="bc-num">02</div></div>
+        <div class="bc-title">Distro Guide</div>
+        <div class="bc-desc">Ubuntu, Debian, Arch, Fedora — what makes each unique, when to use which, and how their package managers compare.</div>
+        <div class="bc-tags"><span class="bc-tag">ubuntu</span><span class="bc-tag">arch</span><span class="bc-tag">fedora</span><span class="bc-tag">debian</span></div>
+      </a>
+      <a href="cheatsheet.html" class="big-card" style="--card-color:var(--amber)">
+        <div class="bc-top"><div class="bc-icon">⚡</div><div class="bc-num">03</div></div>
+        <div class="bc-title">Cheatsheets</div>
+        <div class="bc-desc">Every command you need — searchable and filterable by category. Navigation, files, permissions, networking, systemd, git, vim, tmux.</div>
+        <div class="bc-tags"><span class="bc-tag">commands</span><span class="bc-tag">searchable</span><span class="bc-tag">copy</span></div>
+      </a>
+      <a href="glossary.html" class="big-card" style="--card-color:var(--purple)">
+        <div class="bc-top"><div class="bc-icon">📖</div><div class="bc-num">04</div></div>
+        <div class="bc-title">Glossary & Jargon</div>
+        <div class="bc-desc">60+ Linux terms explained in plain English — from "what is a process?" to "what is cgroups?". Searchable, with real examples.</div>
+        <div class="bc-tags"><span class="bc-tag">beginner</span><span class="bc-tag">definitions</span><span class="bc-tag">jargon</span></div>
+      </a>
+      <a href="my-server.html" class="big-card" style="--card-color:var(--cyan)">
+        <div class="bc-top"><div class="bc-icon">🖥</div><div class="bc-num">05</div></div>
+        <div class="bc-title">My Server Setup</div>
+        <div class="bc-desc">Dell media server + Lenovo as client. SSH, Syncthing, Telegram bot, UFW, Fail2ban, static IP, cron automation — all documented.</div>
+        <div class="bc-tags"><span class="bc-tag">dell</span><span class="bc-tag">syncthing</span><span class="bc-tag">telegram</span><span class="bc-tag">ssh</span></div>
+      </a>
+      <a href="advanced.html" class="big-card" style="--card-color:var(--red)">
+        <div class="bc-top"><div class="bc-icon">🔬</div><div class="bc-num">06</div></div>
+        <div class="bc-title">Advanced Topics</div>
+        <div class="bc-desc">Docker, Nginx, SSH tunnels, WireGuard VPN, iptables deep dive, kernel tuning with sysctl, LVM, ZFS, and cgroups.</div>
+        <div class="bc-tags"><span class="bc-tag">docker</span><span class="bc-tag">kernel</span><span class="bc-tag">networking</span><span class="bc-tag">storage</span></div>
+      </a>
+      <a href="scripting.html" class="big-card" style="--card-color:var(--green)">
+        <div class="bc-top"><div class="bc-icon">✦</div><div class="bc-num">07</div></div>
+        <div class="bc-title">Bash Scripting</div>
+        <div class="bc-desc">From "what is a variable" to writing robust production scripts with error handling, functions, and real automation examples.</div>
+        <div class="bc-tags"><span class="bc-tag">bash</span><span class="bc-tag">automation</span><span class="bc-tag">scripts</span></div>
+      </a>
+      <a href="how-to-search.html" class="big-card" style="--card-color:var(--amber)">
+        <div class="bc-top"><div class="bc-icon">🔍</div><div class="bc-num">08</div></div>
+        <div class="bc-title">How to Search Like a Pro</div>
+        <div class="bc-desc">Read error messages properly, use man pages, search Stack Overflow effectively, use journalctl and dmesg, and ask good questions.</div>
+        <div class="bc-tags"><span class="bc-tag">debugging</span><span class="bc-tag">search</span><span class="bc-tag">man pages</span></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── LEARNING PATHS ── -->
+  <section class="paths-area">
+    <h2 class="paths-title">Suggested Learning Paths</h2>
+    <p class="paths-sub">Not sure where to start? Follow one of these paths.</p>
+    <div class="paths-grid">
+      <div class="path-card">
+        <div class="path-level"><span class="path-dot" style="background:var(--green)"></span><span style="color:var(--green)">Beginner</span></div>
+        <div class="path-name">Total Newcomer</div>
+        <div class="path-steps">
+          <a href="glossary.html" class="path-step"><span class="path-step-num">1</span>Read the Glossary first<span class="path-step-arrow">→</span></a>
+          <a href="fundamentals.html" class="path-step"><span class="path-step-num">2</span>Linux Fundamentals<span class="path-step-arrow">→</span></a>
+          <a href="distros.html" class="path-step"><span class="path-step-num">3</span>Understand Distros<span class="path-step-arrow">→</span></a>
+          <a href="cheatsheet.html" class="path-step"><span class="path-step-num">4</span>Start using Cheatsheets<span class="path-step-arrow">→</span></a>
+          <a href="how-to-search.html" class="path-step"><span class="path-step-num">5</span>Learn how to find answers<span class="path-step-arrow">→</span></a>
+        </div>
+      </div>
+      <div class="path-card">
+        <div class="path-level"><span class="path-dot" style="background:var(--amber)"></span><span style="color:var(--amber)">Server Admin</span></div>
+        <div class="path-name">Home Server Builder</div>
+        <div class="path-steps">
+          <a href="my-server.html" class="path-step"><span class="path-step-num">1</span>My Server Setup (Dell)<span class="path-step-arrow">→</span></a>
+          <a href="cheatsheet.html" class="path-step"><span class="path-step-num">2</span>Essential Commands<span class="path-step-arrow">→</span></a>
+          <a href="scripting.html" class="path-step"><span class="path-step-num">3</span>Automate with Bash<span class="path-step-arrow">→</span></a>
+          <a href="advanced.html" class="path-step"><span class="path-step-num">4</span>Docker & Nginx<span class="path-step-arrow">→</span></a>
+          <a href="how-to-search.html" class="path-step"><span class="path-step-num">5</span>Debug like a pro<span class="path-step-arrow">→</span></a>
+        </div>
+      </div>
+      <div class="path-card">
+        <div class="path-level"><span class="path-dot" style="background:var(--red)"></span><span style="color:var(--red)">Advanced</span></div>
+        <div class="path-name">Go Deep</div>
+        <div class="path-steps">
+          <a href="fundamentals.html" class="path-step"><span class="path-step-num">1</span>Deep-dive Fundamentals<span class="path-step-arrow">→</span></a>
+          <a href="scripting.html" class="path-step"><span class="path-step-num">2</span>Master Bash Scripting<span class="path-step-arrow">→</span></a>
+          <a href="advanced.html" class="path-step"><span class="path-step-num">3</span>Kernel, Docker, VPNs<span class="path-step-arrow">→</span></a>
+          <a href="distros.html" class="path-step"><span class="path-step-num">4</span>Arch Linux deep dive<span class="path-step-arrow">→</span></a>
+          <a href="how-to-search.html" class="path-step"><span class="path-step-num">5</span>strace & kernel tracing<span class="path-step-arrow">→</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── YOUR SETUP ── -->
+  <div class="setup-banner">
+    <div class="setup-banner-left">
+      <h3>🖥 Prateek's Personal Setup</h3>
+      <p>Your specific hardware, services, and configs are all documented in <a href="my-server.html">My Server</a> section.</p>
+    </div>
+    <div class="setup-devices">
+      <div class="device-pill">
+        <div class="device-icon">🔴</div>
+        <div><div class="device-name">Dell Laptop</div><div class="device-sub">dell@dell-media-server · Server</div></div>
+        <div class="device-status"></div>
+      </div>
+      <div class="device-pill">
+        <div class="device-icon">💻</div>
+        <div><div class="device-name">Lenovo Laptop</div><div class="device-sub">Main machine · SSH client</div></div>
+        <div class="device-status"></div>
+      </div>
+      <div class="device-pill">
+        <div class="device-icon">📱</div>
+        <div><div class="device-name">Android Phone</div><div class="device-sub">Termius · Syncthing</div></div>
+        <div class="device-status"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer style="padding:32px 80px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <div style="font-family:var(--mono);font-size:11px;color:var(--text3)">linux<span style="color:var(--accent)">.docs</span> — built by Prateek</div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--text3)">Ubuntu 24.04 LTS · <span style="color:var(--green)">9 sections</span></div>
+  </footer>
+
+</div>
+
+<script src="shared/nav.js"></script>
+<style>@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}</style>
+</body>
+</html>
